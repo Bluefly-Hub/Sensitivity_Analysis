@@ -395,9 +395,13 @@ namespace Cerberus.ButtonAutomation
 
             AutomationElement mainWindow = FindMainWindow();
             FocusWindow(mainWindow);
-            EnsureAncestorsOpen(mainWindow, descriptor);
-
             AutomationElement? element = FindElement(mainWindow, descriptor);
+
+            if (element is null)
+            {
+                EnsureAncestorsOpen(mainWindow, descriptor);
+                element = FindElement(mainWindow, descriptor);
+            }
 
             if (element is null)
             {

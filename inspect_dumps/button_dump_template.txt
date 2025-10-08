@@ -84,25 +84,237 @@ Ancestors:	"Tools" menu item
 
 
 [button2]
-AutomationId:
-Name:
-ControlType:
-Patterns:
-IsEnabled:
+How found:	Selected from tree...
+Name:	"Exit"
+ControlType:	UIA_ButtonControlTypeId (0xC350)
+LocalizedControlType:	"button"
+BoundingRectangle:	{l:1352 t:904 r:1433 b:931}
+IsEnabled:	true
+IsOffscreen:	false
+IsKeyboardFocusable:	true
+HasKeyboardFocus:	false
+AccessKey:	""
+ProcessId:	45180
+RuntimeId:	[2A.7E19C0]
+AutomationId:	"cmdExit"
+FrameworkId:	"WinForm"
+ClassName:	"WindowsForms10.BUTTON.app.0.141b42a_r7_ad1"
+NativeWindowHandle:	0x7E19C0
+ProviderDescription:	"[pid:29192,providerId:0x7E19C0 Main:Nested [pid:45180,providerId:0x7E19C0 Main(parent link):Microsoft: MSAA Proxy (unmanaged:UIAutomationCore.DLL)]; Hwnd(parent link):Microsoft: HWND Proxy (unmanaged:uiautomationcore.dll)]"
+IsPassword:	false
+HelpText:	""
+IsDialog:	false
+LegacyIAccessible.ChildId:	0
+LegacyIAccessible.DefaultAction:	"Press"
+LegacyIAccessible.Description:	""
+LegacyIAccessible.Help:	""
+LegacyIAccessible.KeyboardShortcut:	""
+LegacyIAccessible.Name:	"Exit"
+LegacyIAccessible.Role:	push button (0x2B)
+LegacyIAccessible.State:	focusable (0x100000)
+LegacyIAccessible.Value:	""
+IsAnnotationPatternAvailable:	false
+IsDragPatternAvailable:	false
+IsDockPatternAvailable:	false
+IsDropTargetPatternAvailable:	false
+IsExpandCollapsePatternAvailable:	false
+IsGridItemPatternAvailable:	false
+IsGridPatternAvailable:	false
+IsInvokePatternAvailable:	true
+IsItemContainerPatternAvailable:	false
+IsLegacyIAccessiblePatternAvailable:	true
+IsMultipleViewPatternAvailable:	false
+IsObjectModelPatternAvailable:	false
+IsRangeValuePatternAvailable:	false
+IsScrollItemPatternAvailable:	false
+IsScrollPatternAvailable:	false
+IsSelectionItemPatternAvailable:	false
+IsSelectionPatternAvailable:	false
+IsSpreadsheetItemPatternAvailable:	false
+IsSpreadsheetPatternAvailable:	false
+IsStylesPatternAvailable:	false
+IsSynchronizedInputPatternAvailable:	false
+IsTableItemPatternAvailable:	false
+IsTablePatternAvailable:	false
+IsTextChildPatternAvailable:	false
+IsTextEditPatternAvailable:	false
+IsTextPatternAvailable:	false
+IsTextPattern2Available:	false
+IsTogglePatternAvailable:	false
+IsTransformPatternAvailable:	false
+IsTransform2PatternAvailable:	false
+IsValuePatternAvailable:	false
+IsVirtualizedItemPatternAvailable:	false
+IsWindowPatternAvailable:	false
+IsCustomNavigationPatternAvailable:	false
+IsSelectionPattern2Available:	false
+FirstChild:	[null]
+LastChild:	[null]
+Next:	[null]
+Previous:	"Calculate" button
+Other Props:	Object has no additional properties
+Children:	Container has no children
+Ancestors:	"" pane
+	"" pane
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
 
 [button3]
-AutomationId:
-Name:
-ControlType:
-Patterns:
-IsEnabled:
+How found:	Selected from tree...
+Name:	"Open Template"
+ControlType:	UIA_MenuItemControlTypeId (0xC35B)
+LocalizedControlType:	"menu item"
+IsEnabled:	true
+IsOffscreen:	true
+IsKeyboardFocusable:	true
+HasKeyboardFocus:	false
+AcceleratorKey:	""
+AccessKey:	""
+ProcessId:	45180
+RuntimeId:	[2A.3716053]
+ProviderDescription:	"[pid:45180,providerId:0x0 Main(parent link):Microsoft: MSAA Proxy (unmanaged:UIAutomationCore.DLL)]"
+IsPassword:	false
+HelpText:	""
+IsDialog:	false
+LegacyIAccessible.ChildId:	0
+LegacyIAccessible.DefaultAction:	"Press"
+LegacyIAccessible.Description:	""
+LegacyIAccessible.Help:	""
+LegacyIAccessible.KeyboardShortcut:	""
+LegacyIAccessible.Name:	"Open Template"
+LegacyIAccessible.Role:	menu item (0xC)
+LegacyIAccessible.State:	focusable (0x100000)
+LegacyIAccessible.Value:	""
+IsAnnotationPatternAvailable:	false
+IsDragPatternAvailable:	false
+IsDockPatternAvailable:	false
+IsDropTargetPatternAvailable:	false
+IsExpandCollapsePatternAvailable:	false
+IsGridItemPatternAvailable:	false
+IsGridPatternAvailable:	false
+IsInvokePatternAvailable:	true
+IsItemContainerPatternAvailable:	false
+IsLegacyIAccessiblePatternAvailable:	true
+IsMultipleViewPatternAvailable:	false
+IsObjectModelPatternAvailable:	false
+IsRangeValuePatternAvailable:	false
+IsScrollItemPatternAvailable:	false
+IsScrollPatternAvailable:	false
+IsSelectionItemPatternAvailable:	false
+IsSelectionPatternAvailable:	false
+IsSpreadsheetItemPatternAvailable:	false
+IsSpreadsheetPatternAvailable:	false
+IsStylesPatternAvailable:	false
+IsSynchronizedInputPatternAvailable:	false
+IsTableItemPatternAvailable:	false
+IsTablePatternAvailable:	false
+IsTextChildPatternAvailable:	false
+IsTextEditPatternAvailable:	false
+IsTextPatternAvailable:	false
+IsTextPattern2Available:	false
+IsTogglePatternAvailable:	false
+IsTransformPatternAvailable:	false
+IsTransform2PatternAvailable:	false
+IsValuePatternAvailable:	false
+IsVirtualizedItemPatternAvailable:	false
+IsWindowPatternAvailable:	false
+IsCustomNavigationPatternAvailable:	false
+IsSelectionPattern2Available:	false
+FirstChild:	[null]
+LastChild:	[null]
+Next:	"Save Template" menu item
+Previous:	"" separator
+Other Props:	Object has no additional properties
+Children:	Container has no children
+Ancestors:	"File" menu item
+	"MenuStrip1" menu bar
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
 
 [button4]
-AutomationId:
-Name:
-ControlType:
-Patterns:
-IsEnabled:
+How found:	Selected from tree...
+Name:	"auto"
+ControlType:	UIA_ListItemControlTypeId (0xC357)
+LocalizedControlType:	"list item"
+BoundingRectangle:	{l:802 t:378 r:1063 b:392}
+IsEnabled:	true
+IsOffscreen:	false
+IsKeyboardFocusable:	true
+HasKeyboardFocus:	false
+AccessKey:	""
+ProcessId:	45180
+ProviderDescription:	"[pid:45180,providerId:0x0 Main(parent link):Microsoft: MSAA Proxy (unmanaged:UIAutomationCore.DLL)]"
+IsPassword:	false
+HelpText:	""
+IsDialog:	false
+LegacyIAccessible.ChildId:	1
+LegacyIAccessible.DefaultAction:	"Double Click"
+LegacyIAccessible.Description:	""
+LegacyIAccessible.Help:	""
+LegacyIAccessible.KeyboardShortcut:	""
+LegacyIAccessible.Name:	"auto"
+LegacyIAccessible.Role:	list item (0x22)
+LegacyIAccessible.State:	selected,focusable,selectable (0x300002)
+LegacyIAccessible.Value:	""
+SelectionItem.IsSelected:	false
+SelectionItem.SelectionContainer:	"" list
+IsAnnotationPatternAvailable:	false
+IsDragPatternAvailable:	false
+IsDockPatternAvailable:	false
+IsDropTargetPatternAvailable:	false
+IsExpandCollapsePatternAvailable:	false
+IsGridItemPatternAvailable:	false
+IsGridPatternAvailable:	false
+IsInvokePatternAvailable:	true
+IsItemContainerPatternAvailable:	false
+IsLegacyIAccessiblePatternAvailable:	true
+IsMultipleViewPatternAvailable:	false
+IsObjectModelPatternAvailable:	false
+IsRangeValuePatternAvailable:	false
+IsScrollItemPatternAvailable:	false
+IsScrollPatternAvailable:	false
+IsSelectionItemPatternAvailable:	false
+IsSelectionPatternAvailable:	false
+IsSpreadsheetItemPatternAvailable:	false
+IsSpreadsheetPatternAvailable:	false
+IsStylesPatternAvailable:	false
+IsSynchronizedInputPatternAvailable:	false
+IsTableItemPatternAvailable:	false
+IsTablePatternAvailable:	false
+IsTextChildPatternAvailable:	false
+IsTextEditPatternAvailable:	false
+IsTextPatternAvailable:	false
+IsTextPattern2Available:	false
+IsTogglePatternAvailable:	false
+IsTransformPatternAvailable:	false
+IsTransform2PatternAvailable:	false
+IsValuePatternAvailable:	false
+IsVirtualizedItemPatternAvailable:	false
+IsWindowPatternAvailable:	false
+IsCustomNavigationPatternAvailable:	false
+IsSelectionPattern2Available:	false
+FirstChild:	[null]
+LastChild:	[null]
+Next:	[null]
+Previous:	[null]
+Other Props:	Object has no additional properties
+Children:	Container has no children
+Ancestors:	"" list
+	"" pane
+	"Template Name:" pane
+	" Open Sensitivity Template" window
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
+
 
 [button5]
 AutomationId:
