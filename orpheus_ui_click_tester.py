@@ -2,6 +2,7 @@ import uiautomation as uia
 import subprocess, sys
 import time
 import pythoncom
+from pathlib import Path
 from pywinauto import Application, Desktop
 from pywinauto.uia_defines import NoPatternInterfaceError
 
@@ -10,15 +11,29 @@ uia.SetGlobalSearchTimeout(0.3)
 
 
 def Sensitivity_Analysis():
-    from pywinauto.application import Application
+    """Invoke the Sensitivity Analysis menu via the compiled C# helper."""
+    exe_path = Path(__file__).resolve().parent / "bin" / "Debug" / "net9.0-windows" / "Test_C.exe"
+    if not exe_path.exists():
+        raise FileNotFoundError(f"Expected helper executable not found: {exe_path}")
 
-    app = Application(backend='uia').connect(title_re='Orpheus*')
-    dlg = app.window(title_re='Orpheus*')
-
-    # If it’s a true Win32/WinForms menu, this often just works:
-    # Adjust menu path to the real one that contains the item
-    dlg.menu_select("Tools->Sensitivity Analysis*")
-    print("Sensitivity Analysis opened")
+    try:
+        result = subprocess.run(
+            [str(exe_path)],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        if exc.stdout:
+            print(exc.stdout, end="", file=sys.stdout)
+        if exc.stderr:
+            print(exc.stderr, end="", file=sys.stderr)
+        raise RuntimeError(f"Sensitivity_Analysis failed via helper executable: {exe_path}") from exc
+    else:
+        if result.stdout:
+            print(result.stdout, end="")
+        if result.stderr:
+            print(result.stderr, end="", file=sys.stderr)
 
 def Sensitivity_Analysis2():
     """ Click Sensitivity Analysis menu item in Orpheus main window """
