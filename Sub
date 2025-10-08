@@ -1,0 +1,70 @@
+# pip install uiautomation
+import uiautomation as auto
+import time
+
+def open_sensitivity_analysis():
+    # 1) Attach & focus
+    main = auto.WindowControl(searchDepth=1, NameRe='Orpheus - .*')
+    main.SetActive()
+
+    # 2) Expand Tools using UIA patterns (no click/keys)
+    tools = auto.MenuItemControl(searchFromControl=main, Name='Tools')
+    # Prefer ExpandCollapse if available, else Invoke, else Legacy
+    ec = tools.GetExpandCollapsePattern()
+    if ec:
+        ec.Expand()
+    else:
+        inv = tools.GetInvokePattern()
+        if inv:
+            inv.Invoke()
+        else:
+            leg = tools.GetLegacyIAccessiblePattern()
+            if not leg:
+                raise RuntimeError('Tools exposes no usable pattern')
+            leg.DoDefaultAction()
+
+    time.sleep(0.15)  # give the drop-down a beat to materialize
+
+    # 3) Find the live popup item (two ellipsis variants)
+    item = None
+    for nm in ('Sensitivity Analysis...', 'Sensitivity Analysis\u2026'):
+        cand = auto.MenuItemControl(Name=nm)
+        if cand.Exists(0.2) and cand.IsOffscreen is False:
+            item = cand
+            break
+    if not item:
+        # Some ToolStrip items still report IsOffscreen=True; fallback: trust existence
+        for nm in ('Sensitivity Analysis...', 'Sensitivity Analysis\u2026'):
+            cand = auto.MenuItemControl(Name=nm)
+            if cand.Exists(0.5):
+                item = cand
+                break
+    if not item:
+        raise RuntimeError('Sensitivity Analysis item not found')
+
+    # 4) Invoke via accessibility only (Legacy first, then Invoke)
+    leg = item.GetLegacyIAccessiblePattern()
+    if leg:
+        # Focus/Select before default action (often required by ToolStrip)
+        # 0x1=TAKEFOCUS, 0x2=TAKESELECTION
+        try:
+            leg.Select(0x1)
+            leg.Select(0x1 | 0x2)
+        except Exception:
+            pass
+        leg.DoDefaultAction()
+    else:
+        inv = item.GetInvokePattern()
+        if inv:
+            inv.Invoke()
+        else:
+            raise RuntimeError('Menu item exposes neither Legacy nor Invoke')
+
+    # 5) Wait for wizard
+    wizard = auto.WindowControl(NameRe='Sensitivity Analysis Wizard.*')
+    if not wizard.Exists(max(30, 10)):  # wait up to 30s
+        raise RuntimeError('Wizard window did not appear')
+    print('Wizard opened')
+
+if __name__ == '__main__':
+    open_sensitivity_analysis()

@@ -1,0 +1,28 @@
+2025-10-01 12:11:27.349 ui_trigger.py[19] open_sensitivity_analysis -> Find Control Timeout(10s): {Name: 'Tools', ControlType: MenuItemControl}
+2025-10-01 12:17:41.388 ui_trigger.py[21] open_sensitivity_analysis -> Can not move cursor. MenuItemControl's BoundingRectangle is (0,0,0,0)[0x0]. SearchProperties: {Name: 'Sensitivity Analysis...', ControlType: MenuItemControl}
+2025-10-01 12:19:12.232 ui_trigger.py[21] open_sensitivity_analysis -> Can not move cursor. MenuItemControl's BoundingRectangle is (0,0,0,0)[0x0]. SearchProperties: {Name: 'Sensitivity Analysis...', ControlType: MenuItemControl}
+2025-10-01 16:11:55.803 manual_probe.py[53] action_open_sensitivity_menu -> Can not move cursor. MenuItemControl's BoundingRectangle is (0,0,0,0)[0x0]. SearchProperties: {Name: 'Sensitivity Analysis...', ControlType: MenuItemControl}
+2025-10-02 10:27:41.014 pydevd_safe_repr.py[343] _repr_obj -> Find Control Timeout(10s): {Name: 'Orpheus - <Abbey A-02 (local)>', ControlType: WindowControl}
+2025-10-02 10:27:51.544 pydevd_safe_repr.py[343] _repr_obj -> Find Control Timeout(10s): {Name: 'Sensitivity Analysis...', ControlType: MenuItemControl}
+2025-10-02 10:28:01.929 pydevd_safe_repr.py[343] _repr_obj -> Find Control Timeout(10s): {Name: 'Tools', ControlType: MenuItemControl}
+2025-10-02 10:28:12.701 pydevd_safe_repr.py[343] _repr_obj -> Find Control Timeout(10s): {Name: 'Orpheus - <Abbey A-02 (local)>', ControlType: WindowControl}
+2025-10-02 10:28:22.968 pydevd_safe_repr.py[343] _repr_obj -> Find Control Timeout(10s): {Name: 'Sensitivity Analysis...', ControlType: MenuItemControl}
+2025-10-02 10:28:33.355 pydevd_safe_repr.py[343] _repr_obj -> 2025-10-02 12:16:39.259 orpheus_ui_click_tester.py[11] Sensitivity_Analysis -> 2025-10-02 12:16:52.253 orpheus_ui_click_tester.py[18] Sensitivity_Analysis -> 2025-10-02 12:34:43.809 orpheus_ui_click_tester.py[15] Sensitivity_Analysis -> 2025-10-02 12:43:20.991 orpheus_ui_click_tester.py[21] Sensitivity_Analysis -> 2025-10-02 12:44:06.161 orpheus_ui_click_tester.py[21] Sensitivity_Analysis -> 2025-10-02 12:44:25.695 orpheus_ui_click_tester.py[21] Sensitivity_Analysis -> Find Control Timeout(5s): {Name: 'Sensitivity Analysis...', ControlType: MenuItemControl}
+2025-10-02 12:44:30.776 pydevd_safe_repr.py[343] _repr_obj -> 2025-10-02 12:46:47.698 orpheus_ui_click_tester.py[11] <module> -> Find Control Timeout(0.2s): {Name: 'Sensitivity Analysis...', ControlType: MenuItemControl}
+2025-10-02 12:46:48.128 pydevd_safe_repr.py[343] _repr_obj -> Find Control Timeout(0.2s): {Name: 'Sensitivity Analysis...', ControlType: MenuItemControl}
+2025-10-02 12:46:48.368 pydevd_safe_repr.py[343] _repr_obj -> Find Control Timeout(0.2s): {Name: 'Sensitivity Analysis...', ControlType: MenuItemControl}
+2025-10-02 13:16:13.098 orpheus_ui_click_tester.py[24] exit -> Find Control Timeout(0.3s): {level: 3, AutomationId: 'cmdExit', ControlType: MenuItemControl}
+2025-10-02 13:16:18.709 pydevd_safe_repr.py[343] _repr_obj -> 2025-10-02 13:16:37.910 orpheus_ui_click_tester.py[24] exit -> Find Control Timeout(0.3s): {level: 2, AutomationId: 'cmdExit', ControlType: MenuItemControl}
+2025-10-02 13:16:43.775 pydevd_safe_repr.py[343] _repr_obj -> 2025-10-02 13:20:01.136 orpheus_ui_click_tester.py[28] exit -> 2025-10-02 13:21:19.008 orpheus_ui_click_tester.py[28] exit -> Find Control Timeout(0.3s): {AutomationId: 'cmdExit', ControlType: ButtonControl}
+2025-10-02 13:21:52.692 pydevd_safe_repr.py[343] _repr_obj -> Find Control Timeout(0.3s): {AutomationId: 'cmdExit', ControlType: ButtonControl}
+2025-10-02 13:22:26.978 pydevd_safe_repr.py[343] _repr_obj -> 2025-10-02 13:27:34.537 orpheus_ui_click_tester.py[30] exit -> Find Control Timeout(0.3s): {AutomationId: 'cmdExit', ControlType: ButtonControl}
+2025-10-02 13:27:40.163 pydevd_safe_repr.py[343] _repr_obj -> Find Control Timeout(0.3s): {AutomationId: 'cmdExit', ControlType: ButtonControl}
+2025-10-02 13:27:45.569 pydevd_safe_repr.py[343] _repr_obj -> 2025-10-02 13:32:10.167 orpheus_ui_click_tester.py[30] exit -> Find Control Timeout(0.3s): {AutomationId: 'cmdExit', ControlType: ButtonControl}
+2025-10-02 13:32:11.356 pydevd_safe_repr.py[343] _repr_obj -> 2025-10-02 13:32:25.731 orpheus_ui_click_tester.py[30] exit -> Find Control Timeout(0.3s): {AutomationId: 'cmdExit', ControlType: ButtonControl}
+2025-10-02 13:32:26.795 pydevd_safe_repr.py[343] _repr_obj -> 2025-10-02 13:33:19.616 orpheus_ui_click_tester.py[30] exit -> 2025-10-02 13:33:20.491 orpheus_ui_click_tester.py[30] exit -> Find Control Timeout(0.3s): {AutomationId: 'cmdExit', ControlType: ButtonControl}
+2025-10-02 13:33:24.601 pydevd_safe_repr.py[343] _repr_obj -> Find Control Timeout(0.3s): {AutomationId: 'cmdExit', ControlType: ButtonControl}
+2025-10-02 13:33:29.212 pydevd_safe_repr.py[343] _repr_obj -> Find Control Timeout(0.3s): {AutomationId: 'cmdExit', ControlType: ButtonControl}
+2025-10-02 13:33:59.541 pydevd_safe_repr.py[343] _repr_obj -> 2025-10-02 13:35:13.982 orpheus_ui_click_tester.py[16] Sensitivity_Analysis -> Find Control Timeout(0.3s): {Name: 'Sensitivity Analysis*', ControlType: MenuItemControl}
+2025-10-02 13:35:16.880 pydevd_safe_repr.py[343] _repr_obj -> 2025-10-02 13:35:58.789 orpheus_ui_click_tester.py[16] Sensitivity_Analysis -> Find Control Timeout(0.3s): {Name: 'Sensitivity Analysis', ControlType: MenuItemControl}
+2025-10-02 13:36:01.340 pydevd_safe_repr.py[343] _repr_obj -> 2025-10-02 16:09:25.672 orpheus_ui_click_tester.py[23] Sensitivity_Analysis2 -> Find Control Timeout(0.3s): {Name: 'Orpheus*', ControlType: WindowControl}
+2025-10-02 16:09:27.315 pydevd_safe_repr.py[343] _repr_obj -> 2025-10-03 10:58:36.197 Sub[13] open_sensitivity_analysis -> 

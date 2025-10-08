@@ -1,0 +1,328 @@
+Name:	"Sensitivity Analysis..."
+Ancestors:	"Tools" menu item
+	"MenuStrip1" menu bar
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
+Name:	"auto"
+Ancestors:	"" list
+	"" pane
+	"Template Name:" pane
+	" Open Sensitivity Template" window
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
+Name:	"Open"
+AutomationId:	"cmdOpen"
+Ancestors:	"" pane
+	"" pane
+	" Open Sensitivity Template" window
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
+Name:	"Pipe fluid density"
+AutomationId:	"chkPipeFluidDens"
+Ancestors:	"" pane
+	"Parameters" pane
+	"Sensitivity Setting" tab
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
+Name:	"POOH"
+AutomationId:	"chkFOE_POOH"
+Ancestors:	"" pane
+	"" pane
+	"Parameters" pane
+	"Sensitivity Setting" tab
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+Name:	"POOH"
+AutomationId:	"chkFOE_POOH"
+Ancestors:	"" pane
+	"" pane
+	"Parameters" pane
+	"Sensitivity Setting" tab
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
+Name:	"Outputs"
+Ancestors:	"Sensitivity Setting" tab
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+Name:	"Maximum surface weight during POOH"
+AutomationId:	"chkPOOH_MaxSW"
+Ancestors:	"Force on end" pane
+	"Outputs" pane
+	"Sensitivity Setting" tab
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+Name:	"Maximum pipe stress during POOH  (% of YS)"
+AutomationId:	"chkPOOH_MaxYield"
+Ancestors:	"Force on end" pane
+	"Outputs" pane
+	"Sensitivity Setting" tab
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+Name:	"Parameter Matrix Wizard..."
+AutomationId:	"cmdMatrix"
+Ancestors:	"" pane
+	"" pane
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
+Name:	"BHA Depth
+(ft) Row 0"
+Ancestors:	"Row 0" 
+	"DataGridView" table
+	"" pane
+	"" pane
+	" Sensitivity Parameter Matrix Wizard" window
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
+Name:	"1"
+Ancestors:	"Value List:" list
+	"Edit Values:" pane
+	"" pane
+	" Parameter Value Editor - BHA Depth" window
+	" Sensitivity Parameter Matrix Wizard" window
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+Name:	""
+AutomationId:	"cmdDelete"
+Ancestors:	"" pane
+	"" pane
+	"" pane
+	"" pane
+	" Parameter Value Editor - BHA Depth" window
+	" Sensitivity Parameter Matrix Wizard" window
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+Name:	""
+AutomationId:	"txtVal"
+Ancestors:	"" pane
+	"" pane
+	"" pane
+	"" pane
+	" Parameter Value Editor - BHA Depth" window
+	" Sensitivity Parameter Matrix Wizard" window
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
+Name:	""
+AutomationId:	"cmdAdd"
+Ancestors:	"" pane
+	"" pane
+	"" pane
+	"" pane
+	" Parameter Value Editor - BHA Depth" window
+	" Sensitivity Parameter Matrix Wizard" window
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
+Name:	"OK"
+AutomationId:	"cmdOK"
+Ancestors:	"" pane
+	"" pane
+	" Parameter Value Editor - BHA Depth" window
+	" Sensitivity Parameter Matrix Wizard" window
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
+Name:	"Pipe Fluid Density
+(lb/gal) Row 0"
+Ancestors:	"Row 0" 
+	"DataGridView" table
+	"" pane
+	"" pane
+	" Sensitivity Parameter Matrix Wizard" window
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+Name:	"9.58"
+Ancestors:	"Value List:" list
+	"Edit Values:" pane
+	"" pane
+	" Parameter Value Editor - Pipe Fluid Density" window
+	" Sensitivity Parameter Matrix Wizard" window
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
+Name:	"Force on End - POOH
+(lbf) Row 0"
+Ancestors:	"Row 0" 
+	"DataGridView" table
+	"" pane
+	"" pane
+	" Sensitivity Parameter Matrix Wizard" window
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+Name:	"0"
+Ancestors:	"Value List:" list
+	"Edit Values:" pane
+	"" pane
+	" Parameter Value Editor - Force on End - POOH" window
+	" Sensitivity Parameter Matrix Wizard" window
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+Name:	"OK"
+AutomationId:	"cmdOK"
+Ancestors:	"" pane
+	"" pane
+	" Parameter Value Editor - Force on End - POOH" window
+	" Sensitivity Parameter Matrix Wizard" window
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
+Name:	"Calculate"
+AutomationId:	"cmdCalc"
+Ancestors:	"" pane
+	"" pane
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+Name:	"Open Template"
+Ancestors:	"File" menu item
+	"MenuStrip1" menu bar
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+Name:	"Minimum surface weight during RIH"
+AutomationId:	"chkRIH_MinSW"
+Ancestors:	"Force on end" pane
+	"Outputs" pane
+	"Sensitivity Setting" tab
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
+Name:	"Copy tabulated data"
+Ancestors:	"Edit" menu item
+	"MenuStrip1" menu bar
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
+Name:	"Parameters"
+Ancestors:	"Sensitivity Setting" tab
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
+Name:	"RIH"
+AutomationId:	"chkFOE"
+Ancestors:	"" pane
+	"" pane
+	"Parameters" pane
+	"Sensitivity Setting" tab
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+Name:	"BHA depth"
+AutomationId:	"chkDepth"
+Ancestors:	"" pane
+	"Parameters" pane
+	"Sensitivity Setting" tab
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
+
+
