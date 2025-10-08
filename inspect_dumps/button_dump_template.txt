@@ -1,0 +1,113 @@
+# Button Inspect Dump Template
+# ----------------------------
+# Copy the relevant Inspect output for each button into the matching section below.
+# For best results, include at least the following lines (adjust values as needed):
+#   - AutomationId: <value>
+#   - Name: <visible label>
+#   - ControlType: <e.g., ControlType.Button>
+#   - Patterns: <comma/semicolon separated pattern names from Inspect>
+#   - IsEnabled: <True/False>
+# Any extra lines you paste will be preserved and available for reference.
+
+[button1]
+How found:	Selected from tree...
+Name:	"Sensitivity Analysis..."
+ControlType:	UIA_MenuItemControlTypeId (0xC35B)
+LocalizedControlType:	"menu item"
+IsEnabled:	true
+IsOffscreen:	true
+IsKeyboardFocusable:	true
+HasKeyboardFocus:	false
+AcceleratorKey:	""
+AccessKey:	""
+ProcessId:	17592
+RuntimeId:	[2A.235EEBD]
+ProviderDescription:	"[pid:17592,providerId:0x0 Main(parent link):Microsoft: MSAA Proxy (unmanaged:UIAutomationCore.DLL)]"
+IsPassword:	false
+HelpText:	""
+IsDialog:	false
+LegacyIAccessible.ChildId:	0
+LegacyIAccessible.DefaultAction:	"Press"
+LegacyIAccessible.Description:	""
+LegacyIAccessible.Help:	""
+LegacyIAccessible.KeyboardShortcut:	""
+LegacyIAccessible.Name:	"Sensitivity Analysis..."
+LegacyIAccessible.Role:	menu item (0xC)
+LegacyIAccessible.State:	focusable (0x100000)
+LegacyIAccessible.Value:	""
+IsAnnotationPatternAvailable:	false
+IsDragPatternAvailable:	false
+IsDockPatternAvailable:	false
+IsDropTargetPatternAvailable:	false
+IsExpandCollapsePatternAvailable:	false
+IsGridItemPatternAvailable:	false
+IsGridPatternAvailable:	false
+IsInvokePatternAvailable:	true
+IsItemContainerPatternAvailable:	false
+IsLegacyIAccessiblePatternAvailable:	true
+IsMultipleViewPatternAvailable:	false
+IsObjectModelPatternAvailable:	false
+IsRangeValuePatternAvailable:	false
+IsScrollItemPatternAvailable:	false
+IsScrollPatternAvailable:	false
+IsSelectionItemPatternAvailable:	false
+IsSelectionPatternAvailable:	false
+IsSpreadsheetItemPatternAvailable:	false
+IsSpreadsheetPatternAvailable:	false
+IsStylesPatternAvailable:	false
+IsSynchronizedInputPatternAvailable:	false
+IsTableItemPatternAvailable:	false
+IsTablePatternAvailable:	false
+IsTextChildPatternAvailable:	false
+IsTextEditPatternAvailable:	false
+IsTextPatternAvailable:	false
+IsTextPattern2Available:	false
+IsTogglePatternAvailable:	false
+IsTransformPatternAvailable:	false
+IsTransform2PatternAvailable:	false
+IsValuePatternAvailable:	false
+IsVirtualizedItemPatternAvailable:	false
+IsWindowPatternAvailable:	false
+IsCustomNavigationPatternAvailable:	false
+IsSelectionPattern2Available:	false
+FirstChild:	[null]
+LastChild:	[null]
+Next:	"Report Generator..." menu item
+Previous:	[null]
+Other Props:	Object has no additional properties
+Children:	Container has no children
+Ancestors:	"Tools" menu item
+	"MenuStrip1" menu bar
+	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
+
+[button2]
+AutomationId:
+Name:
+ControlType:
+Patterns:
+IsEnabled:
+
+[button3]
+AutomationId:
+Name:
+ControlType:
+Patterns:
+IsEnabled:
+
+[button4]
+AutomationId:
+Name:
+ControlType:
+Patterns:
+IsEnabled:
+
+[button5]
+AutomationId:
+Name:
+ControlType:
+Patterns:
+IsEnabled:
+
