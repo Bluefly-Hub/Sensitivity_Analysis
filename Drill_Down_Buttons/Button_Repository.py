@@ -1,14 +1,14 @@
-# import uiautomation as uia
+import uiautomation as uia
 import subprocess, sys
-# import time
-# import pythoncom
+import time
+import pythoncom
 from pathlib import Path
-# from pywinauto import Application, Desktop
-# from pywinauto.uia_defines import NoPatternInterfaceError
+from pywinauto import Application, Desktop
+from pywinauto.uia_defines import NoPatternInterfaceError
 from cerberus_sensitivity.automation.button_bridge_CSharp_to_py import invoke_button, set_button_value
 
 # Make misses fast
-#uia.SetGlobalSearchTimeout(1)
+uia.SetGlobalSearchTimeout(1)
 
 
 def Sensitivity_Analysis():
@@ -78,25 +78,9 @@ def Parameter_Matrix_Wizard(timeout: float = 90.0):
     """Fire the repository button that opens the Sensitivity Analysis -> File -> Open Template->Auto."""
     return invoke_button("button10", timeout=timeout)
 
-def Parameter_Matrix_BHA_Depth_Row0(timeout: float = 60.0):
+def Parameter_Matrix_BHA_Depth_Row0(value: str, timeout: float = 90.0):
     """Set the Parameter Matrix row 0 BHA Depth value."""
-    return invoke_button("button11", timeout=timeout)
-
-def Value_List_Depth_1(timeout: float = 60.0):
-    """Set the Parameter Matrix row 0 BHA Depth value."""
-    return invoke_button("button12", timeout=timeout)
-
-def Edit_cmdDelete(timeout: float = 60.0):
-    """Set the Parameter Matrix row 0 BHA Depth value."""
-    return invoke_button("button13", timeout=timeout)
-
-def Edit_Value_Depth(val: str, timeout: float = 1):
-    """Set the Parameter Matrix row 0 BHA Depth value."""
-    return set_button_value("button14", value=val, timeout=timeout)
-
-def Edit_cmdAdd(timeout: float = 60.0):
-    """Set the Parameter Matrix row 0 BHA Depth value."""
-    return invoke_button("button15", timeout=timeout)
+    return set_button_value("button11", value, timeout=timeout)
 
 if __name__ == "__main__":
     # button_open_template()
@@ -108,9 +92,5 @@ if __name__ == "__main__":
     # Parameters_Maximum_Surface_Weight_During_POOH()
     # Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS()
     # Parameter_Matrix_Wizard()
-    # Parameter_Matrix_BHA_Depth_Row0()
-    # Value_List_Depth_1()
-    # Edit_cmdDelete()
-    # Edit_Value_Depth("1000")
-    Edit_cmdAdd()
+    Parameter_Matrix_BHA_Depth_Row0("5000")
 

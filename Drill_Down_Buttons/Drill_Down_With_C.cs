@@ -88,7 +88,6 @@ namespace Cerberus.ButtonAutomation
     internal sealed class InspectDumpEntry
     {
         private readonly Dictionary<string, string> _fields = new(StringComparer.OrdinalIgnoreCase);
-        private string? _lastFieldName;
 
         public InspectDumpEntry(string key)
         {
@@ -104,14 +103,6 @@ namespace Cerberus.ButtonAutomation
             int separatorIndex = line.IndexOf(':');
             if (separatorIndex <= 0)
             {
-                string continuation = line.Trim();
-                if (!string.IsNullOrEmpty(continuation) && !string.IsNullOrEmpty(_lastFieldName))
-                {
-                    if (_fields.TryGetValue(_lastFieldName, out var previous))
-                    {
-                        _fields[_lastFieldName] = $"{previous}{Environment.NewLine}{continuation}";
-                    }
-                }
                 return;
             }
 
@@ -119,12 +110,10 @@ namespace Cerberus.ButtonAutomation
             string fieldValue = line[(separatorIndex + 1)..].Trim();
             if (string.IsNullOrEmpty(fieldName))
             {
-                _lastFieldName = null;
                 return;
             }
 
             _fields[fieldName] = fieldValue;
-            _lastFieldName = fieldName;
         }
 
         public string? GetField(string name) =>
@@ -652,15 +641,6 @@ namespace Cerberus.ButtonAutomation
                 return element;
             }
 
-            if (!string.IsNullOrEmpty(descriptor.Name))
-            {
-                element = FindByNormalizedName(searchRoot, descriptor);
-                if (element is not null)
-                {
-                    return element;
-                }
-            }
-
             if (!ReferenceEquals(searchRoot, root))
             {
                 element = root.FindFirst(TreeScope.Descendants, searchCondition);
@@ -671,25 +651,6 @@ namespace Cerberus.ButtonAutomation
             }
 
             return AutomationElement.RootElement.FindFirst(TreeScope.Descendants, searchCondition);
-        }
-
-        private static AutomationElement? FindByNormalizedName(AutomationElement searchRoot, ButtonDescriptor descriptor)
-        {
-            Condition baseCondition = descriptor.ControlType is not null
-                ? new PropertyCondition(AutomationElement.ControlTypeProperty, descriptor.ControlType)
-                : Condition.TrueCondition;
-
-            AutomationElementCollection candidates = searchRoot.FindAll(TreeScope.Descendants, baseCondition);
-            foreach (AutomationElement candidate in candidates)
-            {
-                string actualName = candidate.Current.Name ?? string.Empty;
-                if (NameMatches(descriptor.Name!, actualName))
-                {
-                    return candidate;
-                }
-            }
-
-            return null;
         }
 
         private static void EnsureAncestorsOpen(AutomationElement root, ButtonDescriptor descriptor)
@@ -1118,34 +1079,6 @@ namespace Cerberus.ButtonAutomation
             }
 
             return false;
-        }
-
-        private static bool NameMatches(string expected, string actual)
-        {
-            if (string.IsNullOrEmpty(expected))
-            {
-                return false;
-            }
-
-            if (string.Equals(expected, actual, StringComparison.Ordinal))
-            {
-                return true;
-            }
-
-            string normalizedExpected = NormalizeWhitespace(expected);
-            string normalizedActual = NormalizeWhitespace(actual);
-            return !string.IsNullOrEmpty(normalizedExpected) &&
-                   string.Equals(normalizedExpected, normalizedActual, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static string NormalizeWhitespace(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                return string.Empty;
-            }
-
-            return Regex.Replace(value, @"\s+", " ").Trim();
         }
     }
 
