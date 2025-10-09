@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows.Automation;
+using System.Runtime.InteropServices;
+using System.Threading;
 
 #nullable enable
 
@@ -585,7 +588,7 @@ namespace Cerberus.ButtonAutomation
             }
         }
 
-        private static AutomationElement? FindElement(AutomationElement root, ButtonDescriptor descriptor)
+        private AutomationElement? FindElement(AutomationElement root, ButtonDescriptor descriptor)
         {
             var conditions = new List<Condition>();
 
@@ -611,8 +614,24 @@ namespace Cerberus.ButtonAutomation
                 _ => new AndCondition(conditions.ToArray()),
             };
 
-            AutomationElement? element = root.FindFirst(TreeScope.Descendants, searchCondition);
-            return element ?? AutomationElement.RootElement.FindFirst(TreeScope.Descendants, searchCondition);
+            AutomationElement searchRoot = GetSearchRoot(root, descriptor) ?? root;
+
+            AutomationElement? element = searchRoot.FindFirst(TreeScope.Descendants, searchCondition);
+            if (element is not null)
+            {
+                return element;
+            }
+
+            if (!ReferenceEquals(searchRoot, root))
+            {
+                element = root.FindFirst(TreeScope.Descendants, searchCondition);
+                if (element is not null)
+                {
+                    return element;
+                }
+            }
+
+            return AutomationElement.RootElement.FindFirst(TreeScope.Descendants, searchCondition);
         }
 
         private static void EnsureAncestorsOpen(AutomationElement root, ButtonDescriptor descriptor)
@@ -644,6 +663,11 @@ namespace Cerberus.ButtonAutomation
 
         private static AutomationElement? FindAncestor(AutomationElement root, string name)
         {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return null;
+            }
+
             try
             {
                 return root.FindFirst(
@@ -654,6 +678,33 @@ namespace Cerberus.ButtonAutomation
             {
                 return null;
             }
+        }
+
+        private AutomationElement? GetSearchRoot(AutomationElement mainWindow, ButtonDescriptor descriptor)
+        {
+            if (descriptor.Ancestors.Count == 0)
+            {
+                return mainWindow;
+            }
+
+            AutomationElement current = mainWindow;
+            IEnumerable<string> orderedAncestors = descriptor.Ancestors
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .Reverse();
+
+            foreach (string ancestorName in orderedAncestors)
+            {
+                AutomationElement? match = FindAncestor(current, ancestorName)
+                    ?? FindAncestor(mainWindow, ancestorName)
+                    ?? FindAncestor(AutomationElement.RootElement, ancestorName);
+
+                if (match is not null)
+                {
+                    current = match;
+                }
+            }
+
+            return current;
         }
 
         private static void TryExpandOrInvoke(AutomationElement element)
@@ -764,8 +815,130 @@ namespace Cerberus.ButtonAutomation
                 return true;
             }
 
+            const int LegacyPatternId = 10018; // UIA_LegacyIAccessiblePatternId
+            AutomationPattern legacyPattern = AutomationPattern.LookupById(LegacyPatternId);
+            if (legacyPattern is not null && element.TryGetCurrentPattern(legacyPattern, out object legacyObj))
+            {
+                try
+                {
+                    MethodInfo? doDefaultAction = legacyObj.GetType().GetMethod("DoDefaultAction", Type.EmptyTypes);
+                    if (doDefaultAction is not null)
+                    {
+                        FocusElementIfPossible(element);
+                        doDefaultAction.Invoke(legacyObj, Array.Empty<object>());
+                        return true;
+                    }
+
+                    MethodInfo? legacyDoDefault = legacyObj.GetType().GetInterface("System.Windows.Automation.Provider.ILegacyIAccessibleProvider")?
+                        .GetMethod("DoDefaultAction");
+                    if (legacyDoDefault is not null)
+                    {
+                        FocusElementIfPossible(element);
+                        legacyDoDefault.Invoke(legacyObj, Array.Empty<object>());
+                        return true;
+                    }
+                }
+                catch (TargetInvocationException)
+                {
+                    // Provider threw during default action; fall through to failure.
+                }
+                catch (MethodAccessException)
+                {
+                    // Provider disallows invocation; fall through.
+                }
+                catch
+                {
+                    // Any other reflection errors ignored; fall through.
+                }
+            }
+
+            if (TryDoubleClick(element))
+            {
+                return true;
+            }
+
             return false;
         }
+
+        private static void FocusElementIfPossible(AutomationElement element)
+        {
+            try
+            {
+                if (element.Current.IsKeyboardFocusable)
+                {
+                    element.SetFocus();
+                }
+            }
+            catch
+            {
+                // Focus best-effort; ignore failures.
+            }
+        }
+
+        private static bool TryDoubleClick(AutomationElement element)
+        {
+            try
+            {
+                System.Windows.Rect rect = element.Current.BoundingRectangle;
+                if (rect.IsEmpty || rect.Width <= 0 || rect.Height <= 0)
+                {
+                    return false;
+                }
+
+                int targetX = (int)(rect.X + (rect.Width / 2));
+                int targetY = (int)(rect.Y + (rect.Height / 2));
+
+                if (!GetCursorPos(out POINT originalPos))
+                {
+                    originalPos = new POINT { X = targetX, Y = targetY };
+                }
+
+                FocusElementIfPossible(element);
+
+                if (!SetCursorPos(targetX, targetY))
+                {
+                    return false;
+                }
+
+                Thread.Sleep(50);
+                SendClick();
+                Thread.Sleep(60);
+                SendClick();
+                Thread.Sleep(80);
+
+                SetCursorPos(originalPos.X, originalPos.Y);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static void SendClick()
+        {
+            mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, UIntPtr.Zero);
+            mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, UIntPtr.Zero);
+        }
+
+        [DllImport("user32.dll")]
+        private static extern bool SetCursorPos(int X, int Y);
+
+        [DllImport("user32.dll")]
+        private static extern bool GetCursorPos(out POINT lpPoint);
+
+        [DllImport("user32.dll")]
+        private static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint dwData, UIntPtr dwExtraInfo);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct POINT
+        {
+            public int X;
+            public int Y;
+        }
+
+        private const uint MOUSEEVENTF_LEFTDOWN = 0x0002;
+        private const uint MOUSEEVENTF_LEFTUP = 0x0004;
 
         private static bool TryToggle(AutomationElement element)
         {
@@ -783,6 +956,7 @@ namespace Cerberus.ButtonAutomation
             if (element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out object pattern))
             {
                 ((SelectionItemPattern)pattern).Select();
+                FocusElementIfPossible(element);
                 return true;
             }
 

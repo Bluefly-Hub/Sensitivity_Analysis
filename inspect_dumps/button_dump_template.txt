@@ -311,17 +311,92 @@ Ancestors:	"" list
 	" Open Sensitivity Template" window
 	" Sensitivity Analysis Wizard - Abbey A-02" window
 	"Orpheus - <Abbey A-02 (local)>     " window
-	"Desktop 2" pane
-	[ No Parent ]
 
 
 
 [button5]
-AutomationId:
-Name:	"auto"
-ControlType: 
-Patterns:
-IsEnabled:
+How found:	Selected from tree...
+Name:	""
+ControlType:	UIA_ListControlTypeId (0xC358)
+LocalizedControlType:	"list"
+BoundingRectangle:	{l:802 t:376 r:1067 b:738}
+IsEnabled:	true
+IsOffscreen:	false
+IsKeyboardFocusable:	true
+HasKeyboardFocus:	false
+AccessKey:	""
+ProcessId:	29728
+RuntimeId:	[2A.212E0]
+AutomationId:	"lsbSettings"
+FrameworkId:	"WinForm"
+ClassName:	"WindowsForms10.LISTBOX.app.0.141b42a_r7_ad1"
+NativeWindowHandle:	0x212E0
+ProviderDescription:	"[pid:18180,providerId:0x212E0 Main:Nested [pid:29728,providerId:0x212E0 Main(parent link):Microsoft: MSAA Proxy (unmanaged:uiautomationcore.dll)]; Nonclient:Microsoft: Non-Client Proxy (unmanaged:uiautomationcore.dll); Hwnd(parent link):Microsoft: HWND Proxy (unmanaged:uiautomationcore.dll)]"
+IsPassword:	false
+HelpText:	""
+IsDialog:	false
+LegacyIAccessible.ChildId:	0
+LegacyIAccessible.DefaultAction:	""
+LegacyIAccessible.Description:	""
+LegacyIAccessible.Help:	""
+LegacyIAccessible.KeyboardShortcut:	""
+LegacyIAccessible.Name:	""
+LegacyIAccessible.Role:	list (0x21)
+LegacyIAccessible.State:	focusable (0x100000)
+LegacyIAccessible.Value:	""
+Selection.CanSelectMultiple:	false
+Selection.IsSelectionRequired:	true
+Selection.Selection:	"auto" list item
+IsAnnotationPatternAvailable:	false
+IsDragPatternAvailable:	false
+IsDockPatternAvailable:	false
+IsDropTargetPatternAvailable:	false
+IsExpandCollapsePatternAvailable:	false
+IsGridItemPatternAvailable:	false
+IsGridPatternAvailable:	false
+IsInvokePatternAvailable:	false
+IsItemContainerPatternAvailable:	false
+IsLegacyIAccessiblePatternAvailable:	true
+IsMultipleViewPatternAvailable:	false
+IsObjectModelPatternAvailable:	false
+IsRangeValuePatternAvailable:	false
+IsScrollItemPatternAvailable:	false
+IsScrollPatternAvailable:	false
+IsSelectionItemPatternAvailable:	false
+IsSelectionPatternAvailable:	true
+IsSpreadsheetItemPatternAvailable:	false
+IsSpreadsheetPatternAvailable:	false
+IsStylesPatternAvailable:	false
+IsSynchronizedInputPatternAvailable:	false
+IsTableItemPatternAvailable:	false
+IsTablePatternAvailable:	false
+IsTextChildPatternAvailable:	false
+IsTextEditPatternAvailable:	false
+IsTextPatternAvailable:	false
+IsTextPattern2Available:	false
+IsTogglePatternAvailable:	false
+IsTransformPatternAvailable:	false
+IsTransform2PatternAvailable:	false
+IsValuePatternAvailable:	false
+IsVirtualizedItemPatternAvailable:	false
+IsWindowPatternAvailable:	false
+IsCustomNavigationPatternAvailable:	false
+IsSelectionPattern2Available:	false
+FirstChild:	"auto" list item
+LastChild:	"RIH" list item
+Next:	" Existing Templates:" text
+Previous:	[null]
+Other Props:	Object has no additional properties
+Children:	"auto" list item
+	"POOH" list item
+	"RIH" list item
+Ancestors:	"" pane
+	"Template Name:" pane
+	" Open Sensitivity Template" window
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+
+
 
 [button6]
 AutomationId:
