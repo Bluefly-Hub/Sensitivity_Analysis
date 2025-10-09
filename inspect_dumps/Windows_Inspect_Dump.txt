@@ -316,37 +316,35 @@ Ancestors:	"" list
 
 [button5]
 How found:	Selected from tree...
-Name:	""
-ControlType:	UIA_ListControlTypeId (0xC358)
-LocalizedControlType:	"list"
-BoundingRectangle:	{l:802 t:376 r:1067 b:738}
+Name:	"Pipe fluid density"
+ControlType:	UIA_CheckBoxControlTypeId (0xC352)
+LocalizedControlType:	"check box"
+BoundingRectangle:	{l:86 t:848 r:266 b:866}
 IsEnabled:	true
 IsOffscreen:	false
 IsKeyboardFocusable:	true
 HasKeyboardFocus:	false
 AccessKey:	""
 ProcessId:	29728
-RuntimeId:	[2A.212E0]
-AutomationId:	"lsbSettings"
+RuntimeId:	[2A.3126A]
+AutomationId:	"chkPipeFluidDens"
 FrameworkId:	"WinForm"
-ClassName:	"WindowsForms10.LISTBOX.app.0.141b42a_r7_ad1"
-NativeWindowHandle:	0x212E0
-ProviderDescription:	"[pid:18180,providerId:0x212E0 Main:Nested [pid:29728,providerId:0x212E0 Main(parent link):Microsoft: MSAA Proxy (unmanaged:uiautomationcore.dll)]; Nonclient:Microsoft: Non-Client Proxy (unmanaged:uiautomationcore.dll); Hwnd(parent link):Microsoft: HWND Proxy (unmanaged:uiautomationcore.dll)]"
+ClassName:	"WindowsForms10.BUTTON.app.0.141b42a_r7_ad1"
+NativeWindowHandle:	0x3126A
+ProviderDescription:	"[pid:18180,providerId:0x3126A Main:Nested [pid:29728,providerId:0x3126A Main(parent link):Microsoft: MSAA Proxy (unmanaged:uiautomationcore.dll)]; Hwnd(parent link):Microsoft: HWND Proxy (unmanaged:uiautomationcore.dll)]"
 IsPassword:	false
 HelpText:	""
 IsDialog:	false
 LegacyIAccessible.ChildId:	0
-LegacyIAccessible.DefaultAction:	""
+LegacyIAccessible.DefaultAction:	"Check"
 LegacyIAccessible.Description:	""
 LegacyIAccessible.Help:	""
 LegacyIAccessible.KeyboardShortcut:	""
-LegacyIAccessible.Name:	""
-LegacyIAccessible.Role:	list (0x21)
+LegacyIAccessible.Name:	"Pipe fluid density"
+LegacyIAccessible.Role:	check box (0x2C)
 LegacyIAccessible.State:	focusable (0x100000)
 LegacyIAccessible.Value:	""
-Selection.CanSelectMultiple:	false
-Selection.IsSelectionRequired:	true
-Selection.Selection:	"auto" list item
+Toggle.ToggleState:	Off (0)
 IsAnnotationPatternAvailable:	false
 IsDragPatternAvailable:	false
 IsDockPatternAvailable:	false
@@ -354,7 +352,7 @@ IsDropTargetPatternAvailable:	false
 IsExpandCollapsePatternAvailable:	false
 IsGridItemPatternAvailable:	false
 IsGridPatternAvailable:	false
-IsInvokePatternAvailable:	false
+IsInvokePatternAvailable:	true
 IsItemContainerPatternAvailable:	false
 IsLegacyIAccessiblePatternAvailable:	true
 IsMultipleViewPatternAvailable:	false
@@ -363,7 +361,7 @@ IsRangeValuePatternAvailable:	false
 IsScrollItemPatternAvailable:	false
 IsScrollPatternAvailable:	false
 IsSelectionItemPatternAvailable:	false
-IsSelectionPatternAvailable:	true
+IsSelectionPatternAvailable:	false
 IsSpreadsheetItemPatternAvailable:	false
 IsSpreadsheetPatternAvailable:	false
 IsStylesPatternAvailable:	false
@@ -374,7 +372,7 @@ IsTextChildPatternAvailable:	false
 IsTextEditPatternAvailable:	false
 IsTextPatternAvailable:	false
 IsTextPattern2Available:	false
-IsTogglePatternAvailable:	false
+IsTogglePatternAvailable:	true
 IsTransformPatternAvailable:	false
 IsTransform2PatternAvailable:	false
 IsValuePatternAvailable:	false
@@ -382,19 +380,25 @@ IsVirtualizedItemPatternAvailable:	false
 IsWindowPatternAvailable:	false
 IsCustomNavigationPatternAvailable:	false
 IsSelectionPattern2Available:	false
-FirstChild:	"auto" list item
-LastChild:	"RIH" list item
-Next:	" Existing Templates:" text
-Previous:	[null]
+FirstChild:	[null]
+LastChild:	[null]
+Next:	"Well fluid density" check box
+Previous:	"Liquid flow rate" check box
 Other Props:	Object has no additional properties
-Children:	"auto" list item
-	"POOH" list item
-	"RIH" list item
+Children:	Container has no children
 Ancestors:	"" pane
-	"Template Name:" pane
-	" Open Sensitivity Template" window
+	"Parameters" pane
+	"Sensitivity Setting" tab
+	"" pane
+	"" pane
+	"" pane
+	"" pane
+	"" pane
 	" Sensitivity Analysis Wizard - Abbey A-02" window
 	"Orpheus - <Abbey A-02 (local)>     " window
+	"Desktop 2" pane
+	[ No Parent ]
+
 
 
 

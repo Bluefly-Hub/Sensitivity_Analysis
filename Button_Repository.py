@@ -54,9 +54,14 @@ def File_OpenTemplate_auto(timeout: float = 90.0):
     """Fire the repository button that opens the Sensitivity Analysis -> File -> Open Template->Auto."""
     return invoke_button("button4", timeout=timeout)
 
+def Parameters_Pipe_fluid_density(timeout: float = 90.0):
+    """Fire the repository button that opens the Sensitivity Analysis -> File -> Open Template->Auto."""
+    return invoke_button("button5", timeout=timeout)
+
 if __name__ == "__main__":
-    button_open_template()
-    File_OpenTemplate()
-    File_OpenTemplate_auto()
+    # button_open_template()
+    # File_OpenTemplate()
+    # File_OpenTemplate_auto()
+    Parameters_Pipe_fluid_density()
 
 
