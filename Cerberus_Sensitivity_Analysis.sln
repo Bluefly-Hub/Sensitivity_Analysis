@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_C", "Test_C.csproj", "{C55F558C-AEF7-04B6-CCF0-78A3F14C24FB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Drill_Down_With_C", "Drill_Down_With_C.csproj", "{C55F558C-AEF7-04B6-CCF0-78A3F14C24FB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

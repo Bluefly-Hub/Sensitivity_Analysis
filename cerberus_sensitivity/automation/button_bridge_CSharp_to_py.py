@@ -10,7 +10,7 @@ def _default_project_root() -> Path:
 
 
 def _default_exe_path() -> Path:
-    return _default_project_root() / "bin" / "Debug" / "net9.0-windows" / "Test_C.exe"
+    return _default_project_root() / "bin" / "Debug" / "net9.0-windows" / "Drill_Down_With_C.exe"
 
 
 def _prepare_dump_path(dump_path: str | Path | None) -> Path | None:

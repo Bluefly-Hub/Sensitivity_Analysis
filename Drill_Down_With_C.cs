@@ -995,7 +995,7 @@ namespace Cerberus.ButtonAutomation
     internal static class Program
     {
         private const string DefaultWindowRegex = ".*(Orpheus|Cerberus).*";
-        private const string DefaultDumpRelativePath = "inspect_dumps\\button_dump_template.txt";
+        private const string DefaultDumpRelativePath = "inspect_dumps\\Windows_Inspect_Dump.txt";
 
         private static readonly string ProjectRoot = ResolveProjectRoot();
 
@@ -1121,9 +1121,9 @@ namespace Cerberus.ButtonAutomation
             Console.WriteLine("Button automation helper");
             Console.WriteLine();
             Console.WriteLine("Usage:");
-            Console.WriteLine("  Test_C.exe [--dump <path>] [--window-regex <regex>] list");
-            Console.WriteLine("  Test_C.exe [--dump <path>] [--window-regex <regex>] invoke <button-key>");
-            Console.WriteLine("  Test_C.exe [--dump <path>] [--window-regex <regex>] patterns <button-key>");
+            Console.WriteLine("  Drill_Down_With_C.exe [--dump <path>] [--window-regex <regex>] list");
+            Console.WriteLine("  Drill_Down_With_C.exe [--dump <path>] [--window-regex <regex>] invoke <button-key>");
+            Console.WriteLine("  Drill_Down_With_C.exe [--dump <path>] [--window-regex <regex>] patterns <button-key>");
             Console.WriteLine();
             Console.WriteLine($"Default inspect dump path: {defaultDump}");
             Console.WriteLine($"Default window regex: {DefaultWindowRegex}");

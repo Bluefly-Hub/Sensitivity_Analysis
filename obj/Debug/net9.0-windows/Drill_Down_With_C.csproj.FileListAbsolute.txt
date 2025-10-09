@@ -1,0 +1,14 @@
+C:\Users\bsmith\NCS Multistage\Technical Services - Projects\00_US\001 Brad Smith\00-Projects\Active\Code\Cerberus_Sensitivity_Analysis\bin\Debug\net9.0-windows\Drill_Down_With_C.exe
+C:\Users\bsmith\NCS Multistage\Technical Services - Projects\00_US\001 Brad Smith\00-Projects\Active\Code\Cerberus_Sensitivity_Analysis\bin\Debug\net9.0-windows\Drill_Down_With_C.deps.json
+C:\Users\bsmith\NCS Multistage\Technical Services - Projects\00_US\001 Brad Smith\00-Projects\Active\Code\Cerberus_Sensitivity_Analysis\bin\Debug\net9.0-windows\Drill_Down_With_C.runtimeconfig.json
+C:\Users\bsmith\NCS Multistage\Technical Services - Projects\00_US\001 Brad Smith\00-Projects\Active\Code\Cerberus_Sensitivity_Analysis\bin\Debug\net9.0-windows\Drill_Down_With_C.dll
+C:\Users\bsmith\NCS Multistage\Technical Services - Projects\00_US\001 Brad Smith\00-Projects\Active\Code\Cerberus_Sensitivity_Analysis\bin\Debug\net9.0-windows\Drill_Down_With_C.pdb
+C:\Users\bsmith\NCS Multistage\Technical Services - Projects\00_US\001 Brad Smith\00-Projects\Active\Code\Cerberus_Sensitivity_Analysis\obj\Debug\net9.0-windows\Drill_Down_With_C.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\bsmith\NCS Multistage\Technical Services - Projects\00_US\001 Brad Smith\00-Projects\Active\Code\Cerberus_Sensitivity_Analysis\obj\Debug\net9.0-windows\Drill_Down_With_C.AssemblyInfoInputs.cache
+C:\Users\bsmith\NCS Multistage\Technical Services - Projects\00_US\001 Brad Smith\00-Projects\Active\Code\Cerberus_Sensitivity_Analysis\obj\Debug\net9.0-windows\Drill_Down_With_C.AssemblyInfo.cs
+C:\Users\bsmith\NCS Multistage\Technical Services - Projects\00_US\001 Brad Smith\00-Projects\Active\Code\Cerberus_Sensitivity_Analysis\obj\Debug\net9.0-windows\Drill_Down_With_C.csproj.CoreCompileInputs.cache
+C:\Users\bsmith\NCS Multistage\Technical Services - Projects\00_US\001 Brad Smith\00-Projects\Active\Code\Cerberus_Sensitivity_Analysis\obj\Debug\net9.0-windows\Drill_Down_With_C.dll
+C:\Users\bsmith\NCS Multistage\Technical Services - Projects\00_US\001 Brad Smith\00-Projects\Active\Code\Cerberus_Sensitivity_Analysis\obj\Debug\net9.0-windows\refint\Drill_Down_With_C.dll
+C:\Users\bsmith\NCS Multistage\Technical Services - Projects\00_US\001 Brad Smith\00-Projects\Active\Code\Cerberus_Sensitivity_Analysis\obj\Debug\net9.0-windows\Drill_Down_With_C.pdb
+C:\Users\bsmith\NCS Multistage\Technical Services - Projects\00_US\001 Brad Smith\00-Projects\Active\Code\Cerberus_Sensitivity_Analysis\obj\Debug\net9.0-windows\Drill_Down_With_C.genruntimeconfig.cache
+C:\Users\bsmith\NCS Multistage\Technical Services - Projects\00_US\001 Brad Smith\00-Projects\Active\Code\Cerberus_Sensitivity_Analysis\obj\Debug\net9.0-windows\ref\Drill_Down_With_C.dll

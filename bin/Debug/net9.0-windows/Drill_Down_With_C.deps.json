@@ -6,15 +6,15 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v9.0": {
-      "Test_C/1.0.0": {
+      "Drill_Down_With_C/1.0.0": {
         "runtime": {
-          "Test_C.dll": {}
+          "Drill_Down_With_C.dll": {}
         }
       }
     }
   },
   "libraries": {
-    "Test_C/1.0.0": {
+    "Drill_Down_With_C/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

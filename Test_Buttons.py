@@ -1,4 +1,4 @@
-from cerberus_sensitivity.automation.button_bridge import invoke_button
+from cerberus_sensitivity.automation.button_bridge_CSharp_to_py import invoke_button
 
 
 def main() -> None:

@@ -10,12 +10,12 @@
 using System;
 using System.Reflection;
 
-[assembly: System.Reflection.AssemblyCompanyAttribute("Test_C")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("Drill_Down_With_C")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9bbd64df5a2bc28dfd6b35838675132509fdba9b")]
-[assembly: System.Reflection.AssemblyProductAttribute("Test_C")]
-[assembly: System.Reflection.AssemblyTitleAttribute("Test_C")]
+[assembly: System.Reflection.AssemblyProductAttribute("Drill_Down_With_C")]
+[assembly: System.Reflection.AssemblyTitleAttribute("Drill_Down_With_C")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
 [assembly: System.Runtime.Versioning.TargetPlatformAttribute("Windows7.0")]
 [assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Windows7.0")]
