@@ -76,11 +76,10 @@ Next:	"Report Generator..." menu item
 Previous:	[null]
 Other Props:	Object has no additional properties
 Children:	Container has no children
-Ancestors:	"Tools" menu item
+Ancestors:	
+	"Tools" menu item
 	"MenuStrip1" menu bar
 	"Orpheus - <Abbey A-02 (local)>     " window
-	"Desktop 2" pane
-	[ No Parent ]
 
 
 [button2]
@@ -154,12 +153,10 @@ Next:	[null]
 Previous:	"Calculate" button
 Other Props:	Object has no additional properties
 Children:	Container has no children
-Ancestors:	"" pane
-	"" pane
+Ancestors:	
 	" Sensitivity Analysis Wizard - Abbey A-02" window
 	"Orpheus - <Abbey A-02 (local)>     " window
-	"Desktop 2" pane
-	[ No Parent ]
+
 
 
 [button3]
@@ -229,12 +226,11 @@ Next:	"Save Template" menu item
 Previous:	"" separator
 Other Props:	Object has no additional properties
 Children:	Container has no children
-Ancestors:	"File" menu item
+Ancestors:	
+	"File" menu item
 	"MenuStrip1" menu bar
 	" Sensitivity Analysis Wizard - Abbey A-02" window
 	"Orpheus - <Abbey A-02 (local)>     " window
-	"Desktop 2" pane
-	[ No Parent ]
 
 
 [button4]
@@ -305,8 +301,7 @@ Next:	[null]
 Previous:	[null]
 Other Props:	Object has no additional properties
 Children:	Container has no children
-Ancestors:	"" list
-	"" pane
+Ancestors:	
 	"Template Name:" pane
 	" Open Sensitivity Template" window
 	" Sensitivity Analysis Wizard - Abbey A-02" window
@@ -386,9 +381,162 @@ Next:	"Well fluid density" check box
 Previous:	"Liquid flow rate" check box
 Other Props:	Object has no additional properties
 Children:	Container has no children
-Ancestors:	"" pane
+Ancestors:
 	"Parameters" pane
 	"Sensitivity Setting" tab
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+
+
+
+[button6]
+How found:	Refreshing...
+Name:	"POOH"
+ControlType:	UIA_CheckBoxControlTypeId (0xC352)
+LocalizedControlType:	"check box"
+BoundingRectangle:	{l:224 t:672 r:284 b:690}
+IsEnabled:	true
+IsOffscreen:	false
+IsKeyboardFocusable:	true
+HasKeyboardFocus:	false
+AccessKey:	""
+ProcessId:	29728
+RuntimeId:	[2A.31256]
+AutomationId:	"chkFOE_POOH"
+FrameworkId:	"WinForm"
+ClassName:	"WindowsForms10.BUTTON.app.0.141b42a_r7_ad1"
+NativeWindowHandle:	0x31256
+ProviderDescription:	"[pid:18180,providerId:0x31256 Main:Nested [pid:29728,providerId:0x31256 Main(parent link):Microsoft: MSAA Proxy (unmanaged:uiautomationcore.dll)]; Hwnd(parent link):Microsoft: HWND Proxy (unmanaged:uiautomationcore.dll)]"
+IsPassword:	false
+HelpText:	""
+IsDialog:	false
+LegacyIAccessible.ChildId:	0
+LegacyIAccessible.DefaultAction:	"Check"
+LegacyIAccessible.Description:	""
+LegacyIAccessible.Help:	""
+LegacyIAccessible.KeyboardShortcut:	""
+LegacyIAccessible.Name:	"POOH"
+LegacyIAccessible.Role:	check box (0x2C)
+LegacyIAccessible.State:	focusable (0x100000)
+LegacyIAccessible.Value:	""
+Toggle.ToggleState:	Off (0)
+IsAnnotationPatternAvailable:	false
+IsDragPatternAvailable:	false
+IsDockPatternAvailable:	false
+IsDropTargetPatternAvailable:	false
+IsExpandCollapsePatternAvailable:	false
+IsGridItemPatternAvailable:	false
+IsGridPatternAvailable:	false
+IsInvokePatternAvailable:	true
+IsItemContainerPatternAvailable:	false
+IsLegacyIAccessiblePatternAvailable:	true
+IsMultipleViewPatternAvailable:	false
+IsObjectModelPatternAvailable:	false
+IsRangeValuePatternAvailable:	false
+IsScrollItemPatternAvailable:	false
+IsScrollPatternAvailable:	false
+IsSelectionItemPatternAvailable:	false
+IsSelectionPatternAvailable:	false
+IsSpreadsheetItemPatternAvailable:	false
+IsSpreadsheetPatternAvailable:	false
+IsStylesPatternAvailable:	false
+IsSynchronizedInputPatternAvailable:	false
+IsTableItemPatternAvailable:	false
+IsTablePatternAvailable:	false
+IsTextChildPatternAvailable:	false
+IsTextEditPatternAvailable:	false
+IsTextPatternAvailable:	false
+IsTextPattern2Available:	false
+IsTogglePatternAvailable:	true
+IsTransformPatternAvailable:	false
+IsTransform2PatternAvailable:	false
+IsValuePatternAvailable:	false
+IsVirtualizedItemPatternAvailable:	false
+IsWindowPatternAvailable:	false
+IsCustomNavigationPatternAvailable:	false
+IsSelectionPattern2Available:	false
+FirstChild:	[null]
+LastChild:	[null]
+Next:	"RIH" check box
+Previous:	"Pipe speed" check box
+Other Props:	Object has no additional properties
+Children:	Container has no children
+Ancestors:
+	"Parameters" pane
+	"Sensitivity Setting" tab
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+
+
+[button7]
+How found:	Selected from tree...
+Name:	"Outputs"
+ControlType:	UIA_TabItemControlTypeId (0xC363)
+LocalizedControlType:	"tab item"
+BoundingRectangle:	{l:40 t:570 r:63 b:666}
+IsEnabled:	true
+IsOffscreen:	false
+IsKeyboardFocusable:	true
+HasKeyboardFocus:	false
+AccessKey:	""
+ProcessId:	29728
+ProviderDescription:	"[pid:29728,providerId:0x0 Main(parent link):Microsoft: MSAA Proxy (unmanaged:uiautomationcore.dll)]"
+IsPassword:	false
+HelpText:	""
+IsDialog:	false
+LegacyIAccessible.ChildId:	2
+LegacyIAccessible.DefaultAction:	"Switch"
+LegacyIAccessible.Description:	""
+LegacyIAccessible.Help:	""
+LegacyIAccessible.KeyboardShortcut:	""
+LegacyIAccessible.Name:	"Outputs"
+LegacyIAccessible.Role:	page tab (0x25)
+LegacyIAccessible.State:	focusable,selectable (0x300000)
+LegacyIAccessible.Value:	""
+SelectionItem.IsSelected:	false
+SelectionItem.SelectionContainer:	"Sensitivity Setting" tab
+IsAnnotationPatternAvailable:	false
+IsDragPatternAvailable:	false
+IsDockPatternAvailable:	false
+IsDropTargetPatternAvailable:	false
+IsExpandCollapsePatternAvailable:	false
+IsGridItemPatternAvailable:	false
+IsGridPatternAvailable:	false
+IsInvokePatternAvailable:	false
+IsItemContainerPatternAvailable:	false
+IsLegacyIAccessiblePatternAvailable:	true
+IsMultipleViewPatternAvailable:	false
+IsObjectModelPatternAvailable:	false
+IsRangeValuePatternAvailable:	false
+IsScrollItemPatternAvailable:	false
+IsScrollPatternAvailable:	false
+IsSelectionItemPatternAvailable:	true
+IsSelectionPatternAvailable:	false
+IsSpreadsheetItemPatternAvailable:	false
+IsSpreadsheetPatternAvailable:	false
+IsStylesPatternAvailable:	false
+IsSynchronizedInputPatternAvailable:	false
+IsTableItemPatternAvailable:	false
+IsTablePatternAvailable:	false
+IsTextChildPatternAvailable:	false
+IsTextEditPatternAvailable:	false
+IsTextPatternAvailable:	false
+IsTextPattern2Available:	false
+IsTogglePatternAvailable:	false
+IsTransformPatternAvailable:	false
+IsTransform2PatternAvailable:	false
+IsValuePatternAvailable:	false
+IsVirtualizedItemPatternAvailable:	false
+IsWindowPatternAvailable:	false
+IsCustomNavigationPatternAvailable:	false
+IsSelectionPattern2Available:	false
+FirstChild:	[null]
+LastChild:	[null]
+Next:	[null]
+Previous:	"Parameters" tab item
+Other Props:	Object has no additional properties
+Children:	Container has no children
+Ancestors:	"Sensitivity Setting" tab
 	"" pane
 	"" pane
 	"" pane
@@ -401,10 +549,168 @@ Ancestors:	"" pane
 
 
 
+[button8]
+How found:	Selected from tree...
+Name:	"Maximum surface weight during POOH"
+ControlType:	UIA_CheckBoxControlTypeId (0xC352)
+LocalizedControlType:	"check box"
+BoundingRectangle:	{l:75 t:557 r:420 b:575}
+IsEnabled:	true
+IsOffscreen:	false
+IsKeyboardFocusable:	true
+HasKeyboardFocus:	false
+AccessKey:	""
+ProcessId:	29728
+RuntimeId:	[2A.415DE]
+AutomationId:	"chkPOOH_MaxSW"
+FrameworkId:	"WinForm"
+ClassName:	"WindowsForms10.BUTTON.app.0.141b42a_r7_ad1"
+NativeWindowHandle:	0x415DE
+ProviderDescription:	"[pid:18180,providerId:0x415DE Main:Nested [pid:29728,providerId:0x415DE Main(parent link):Microsoft: MSAA Proxy (unmanaged:uiautomationcore.dll)]; Hwnd(parent link):Microsoft: HWND Proxy (unmanaged:uiautomationcore.dll)]"
+IsPassword:	false
+HelpText:	""
+IsDialog:	false
+LegacyIAccessible.ChildId:	0
+LegacyIAccessible.DefaultAction:	"Check"
+LegacyIAccessible.Description:	""
+LegacyIAccessible.Help:	""
+LegacyIAccessible.KeyboardShortcut:	""
+LegacyIAccessible.Name:	"Maximum surface weight during POOH"
+LegacyIAccessible.Role:	check box (0x2C)
+LegacyIAccessible.State:	focusable (0x100000)
+LegacyIAccessible.Value:	""
+Toggle.ToggleState:	Off (0)
+IsAnnotationPatternAvailable:	false
+IsDragPatternAvailable:	false
+IsDockPatternAvailable:	false
+IsDropTargetPatternAvailable:	false
+IsExpandCollapsePatternAvailable:	false
+IsGridItemPatternAvailable:	false
+IsGridPatternAvailable:	false
+IsInvokePatternAvailable:	true
+IsItemContainerPatternAvailable:	false
+IsLegacyIAccessiblePatternAvailable:	true
+IsMultipleViewPatternAvailable:	false
+IsObjectModelPatternAvailable:	false
+IsRangeValuePatternAvailable:	false
+IsScrollItemPatternAvailable:	false
+IsScrollPatternAvailable:	false
+IsSelectionItemPatternAvailable:	false
+IsSelectionPatternAvailable:	false
+IsSpreadsheetItemPatternAvailable:	false
+IsSpreadsheetPatternAvailable:	false
+IsStylesPatternAvailable:	false
+IsSynchronizedInputPatternAvailable:	false
+IsTableItemPatternAvailable:	false
+IsTablePatternAvailable:	false
+IsTextChildPatternAvailable:	false
+IsTextEditPatternAvailable:	false
+IsTextPatternAvailable:	false
+IsTextPattern2Available:	false
+IsTogglePatternAvailable:	true
+IsTransformPatternAvailable:	false
+IsTransform2PatternAvailable:	false
+IsValuePatternAvailable:	false
+IsVirtualizedItemPatternAvailable:	false
+IsWindowPatternAvailable:	false
+IsCustomNavigationPatternAvailable:	false
+IsSelectionPattern2Available:	false
+FirstChild:	[null]
+LastChild:	[null]
+Next:	"Surface weight @max SDF" check box
+Previous:	"Maximum pipe compression @max SDF" check box
+Other Props:	Object has no additional properties
+Children:	Container has no children
+Ancestors:	
+	"Force on end" pane
+	"Outputs" pane
+	"Sensitivity Setting" tab
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
 
-[button6]
-AutomationId:
-Name:
-ControlType:
-Patterns:
-IsEnabled:
+
+
+[button9]
+How found:	Selected from tree...
+Name:	"Maximum pipe stress during POOH  (% of YS)"
+ControlType:	UIA_CheckBoxControlTypeId (0xC352)
+LocalizedControlType:	"check box"
+BoundingRectangle:	{l:68 t:604 r:521 b:622}
+IsEnabled:	true
+IsOffscreen:	false
+IsKeyboardFocusable:	true
+HasKeyboardFocus:	false
+AccessKey:	""
+ProcessId:	29728
+RuntimeId:	[2A.515C6]
+AutomationId:	"chkPOOH_MaxYield"
+FrameworkId:	"WinForm"
+ClassName:	"WindowsForms10.BUTTON.app.0.141b42a_r7_ad1"
+NativeWindowHandle:	0x515C6
+ProviderDescription:	"[pid:18180,providerId:0x515C6 Main:Nested [pid:29728,providerId:0x515C6 Main(parent link):Microsoft: MSAA Proxy (unmanaged:uiautomationcore.dll)]; Hwnd(parent link):Microsoft: HWND Proxy (unmanaged:uiautomationcore.dll)]"
+IsPassword:	false
+HelpText:	""
+IsDialog:	false
+LegacyIAccessible.ChildId:	0
+LegacyIAccessible.DefaultAction:	"Check"
+LegacyIAccessible.Description:	""
+LegacyIAccessible.Help:	""
+LegacyIAccessible.KeyboardShortcut:	""
+LegacyIAccessible.Name:	"Maximum pipe stress during POOH  (% of YS)"
+LegacyIAccessible.Role:	check box (0x2C)
+LegacyIAccessible.State:	focusable (0x100000)
+LegacyIAccessible.Value:	""
+Toggle.ToggleState:	Off (0)
+IsAnnotationPatternAvailable:	false
+IsDragPatternAvailable:	false
+IsDockPatternAvailable:	false
+IsDropTargetPatternAvailable:	false
+IsExpandCollapsePatternAvailable:	false
+IsGridItemPatternAvailable:	false
+IsGridPatternAvailable:	false
+IsInvokePatternAvailable:	true
+IsItemContainerPatternAvailable:	false
+IsLegacyIAccessiblePatternAvailable:	true
+IsMultipleViewPatternAvailable:	false
+IsObjectModelPatternAvailable:	false
+IsRangeValuePatternAvailable:	false
+IsScrollItemPatternAvailable:	false
+IsScrollPatternAvailable:	false
+IsSelectionItemPatternAvailable:	false
+IsSelectionPatternAvailable:	false
+IsSpreadsheetItemPatternAvailable:	false
+IsSpreadsheetPatternAvailable:	false
+IsStylesPatternAvailable:	false
+IsSynchronizedInputPatternAvailable:	false
+IsTableItemPatternAvailable:	false
+IsTablePatternAvailable:	false
+IsTextChildPatternAvailable:	false
+IsTextEditPatternAvailable:	false
+IsTextPatternAvailable:	false
+IsTextPattern2Available:	false
+IsTogglePatternAvailable:	true
+IsTransformPatternAvailable:	false
+IsTransform2PatternAvailable:	false
+IsValuePatternAvailable:	false
+IsVirtualizedItemPatternAvailable:	false
+IsWindowPatternAvailable:	false
+IsCustomNavigationPatternAvailable:	false
+IsSelectionPattern2Available:	false
+FirstChild:	[null]
+LastChild:	[null]
+Next:	"Maximum pick-up force (max PUF)" check box
+Previous:	"Maximum pipe tension during POOH" check box
+Other Props:	Object has no additional properties
+Children:	Container has no children
+Ancestors:	
+	"Force on end" pane
+	"Outputs" pane
+	"Sensitivity Setting" tab
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+
+
+
+[button10]
+
+[button11]

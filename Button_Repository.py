@@ -58,10 +58,29 @@ def Parameters_Pipe_fluid_density(timeout: float = 90.0):
     """Fire the repository button that opens the Sensitivity Analysis -> File -> Open Template->Auto."""
     return invoke_button("button5", timeout=timeout)
 
+def Parameters_POOH(timeout: float = 90.0):
+    """Fire the repository button that opens the Sensitivity Analysis -> File -> Open Template->Auto."""
+    return invoke_button("button6", timeout=timeout)
+
+def Sensitivity_Setting_Outputs(timeout: float = 90.0):
+    """Fire the repository button that opens the Sensitivity Analysis -> File -> Open Template->Auto."""
+    return invoke_button("button7", timeout=timeout)
+
+def Parameters_Maximum_Surface_Weight_During_POOH(timeout: float = 90.0):
+    """Fire the repository button that opens the Sensitivity Analysis -> File -> Open Template->Auto."""
+    return invoke_button("button8", timeout=timeout)
+
+def Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS(timeout: float = 90.0):
+    """Fire the repository button that opens the Sensitivity Analysis -> File -> Open Template->Auto."""
+    return invoke_button("button9", timeout=timeout)
+
 if __name__ == "__main__":
     # button_open_template()
     # File_OpenTemplate()
     # File_OpenTemplate_auto()
-    Parameters_Pipe_fluid_density()
-
+    # Parameters_Pipe_fluid_density()
+    # Parameters_POOH()
+    # Sensitivity_Setting_Outputs()
+    # Parameters_Maximum_Surface_Weight_During_POOH()
+    Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS()
 
