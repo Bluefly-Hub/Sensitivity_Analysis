@@ -63,14 +63,14 @@ namespace Cerberus.ButtonAutomation
                 return ButtonAction.Toggle;
             }
 
-            if (patterns.Any(p => p.Contains("SelectionItem", StringComparison.OrdinalIgnoreCase)))
-            {
-                return ButtonAction.Select;
-            }
-
             if (patterns.Any(p => p.Contains("Invoke", StringComparison.OrdinalIgnoreCase)))
             {
                 return ButtonAction.Invoke;
+            }
+
+            if (patterns.Any(p => p.Contains("SelectionItem", StringComparison.OrdinalIgnoreCase)))
+            {
+                return ButtonAction.Select;
             }
 
             if (controlType == ControlType.Button || controlType == ControlType.MenuItem)
@@ -122,7 +122,7 @@ namespace Cerberus.ButtonAutomation
             string? name = AutomationParsers.StripQuotes(GetField("Name"));
             string? controlTypeRaw = GetField("ControlType") ?? GetField("Control Type");
             ControlType? controlType = AutomationParsers.ParseControlType(controlTypeRaw);
-            IReadOnlyList<string> patterns = AutomationParsers.ParsePatterns(GetField("Patterns") ?? GetField("Pattern"));
+            IReadOnlyList<string> patterns = BuildPatternList();
             bool? isEnabled = AutomationParsers.ParseNullableBool(GetField("IsEnabled") ?? GetField("Is Enabled"));
             IReadOnlyList<string> ancestors = AutomationParsers.ParseAncestors(RawLines);
 
@@ -135,6 +135,37 @@ namespace Cerberus.ButtonAutomation
                 isEnabled,
                 RawLines.ToList(),
                 ancestors);
+        }
+
+        private IReadOnlyList<string> BuildPatternList()
+        {
+            List<string> patternList = new();
+            HashSet<string> seen = new(StringComparer.OrdinalIgnoreCase);
+
+            void AddPattern(string? value)
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    return;
+                }
+
+                if (seen.Add(value))
+                {
+                    patternList.Add(value);
+                }
+            }
+
+            foreach (string pattern in AutomationParsers.ParsePatterns(GetField("Patterns") ?? GetField("Pattern")))
+            {
+                AddPattern(pattern);
+            }
+
+            foreach (string inferred in AutomationParsers.ParsePatternAvailability(RawLines))
+            {
+                AddPattern(inferred);
+            }
+
+            return patternList;
         }
     }
 
@@ -197,6 +228,60 @@ namespace Cerberus.ButtonAutomation
                 .Select(token => token.Trim())
                 .Where(token => !string.IsNullOrEmpty(token))
                 .ToArray();
+        }
+
+        public static IReadOnlyList<string> ParsePatternAvailability(IEnumerable<string> rawLines)
+        {
+            List<string> patterns = new();
+            HashSet<string> seen = new(StringComparer.OrdinalIgnoreCase);
+
+            foreach (string line in rawLines)
+            {
+                int separatorIndex = line.IndexOf(':');
+                if (separatorIndex <= 0)
+                {
+                    continue;
+                }
+
+                string fieldName = line[..separatorIndex].Trim();
+                string fieldValue = line[(separatorIndex + 1)..].Trim();
+
+                if (!fieldValue.Equals("true", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (!fieldName.StartsWith("Is", StringComparison.OrdinalIgnoreCase) ||
+                    !fieldName.EndsWith("PatternAvailable", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                string core = fieldName[2..];
+                if (core.Length <= "Available".Length)
+                {
+                    continue;
+                }
+
+                core = core[..^"Available".Length];
+                if (string.IsNullOrWhiteSpace(core))
+                {
+                    continue;
+                }
+
+                string patternName = core;
+                if (!patternName.EndsWith("Pattern", StringComparison.OrdinalIgnoreCase))
+                {
+                    patternName += "Pattern";
+                }
+
+                if (seen.Add(patternName))
+                {
+                    patterns.Add(patternName);
+                }
+            }
+
+            return patterns;
         }
 
         public static bool? ParseNullableBool(string? value)
@@ -382,10 +467,47 @@ namespace Cerberus.ButtonAutomation
 
         public void InvokeButton(string key)
         {
-            if (!_descriptors.TryGetValue(key, out var descriptor))
+            ButtonDescriptor descriptor;
+            AutomationElement element = ResolveElement(key, out descriptor);
+            ExecuteAction(element, descriptor);
+        }
+
+        public void PrintPatternDiagnostics(string key)
+        {
+            ButtonDescriptor descriptor;
+            AutomationElement element = ResolveElement(key, out descriptor);
+
+            Console.WriteLine($"Pattern diagnostics for '{descriptor.Key}':");
+
+            try
+            {
+                AutomationPattern[] supported = element.GetSupportedPatterns();
+                if (supported.Length == 0)
+                {
+                    Console.WriteLine("  No supported patterns reported by provider.");
+                }
+                else
+                {
+                    foreach (AutomationPattern pattern in supported.OrderBy(p => p.ProgrammaticName, StringComparer.OrdinalIgnoreCase))
+                    {
+                        bool available = element.TryGetCurrentPattern(pattern, out _);
+                        Console.WriteLine($"  {SimplifyPatternName(pattern.ProgrammaticName)} : {(available ? "available" : "not available")}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"  Failed to query supported patterns: {ex.Message}");
+            }
+        }
+
+        private AutomationElement ResolveElement(string key, out ButtonDescriptor descriptor)
+        {
+            if (!_descriptors.TryGetValue(key, out var foundDescriptor))
             {
                 throw new InvalidOperationException($"Button '{key}' not found in repository.");
             }
+            descriptor = foundDescriptor;
 
             if (!descriptor.HasSearchCriteria)
             {
@@ -419,7 +541,7 @@ namespace Cerberus.ButtonAutomation
                 Console.WriteLine($"Warning: Inspect dump indicates '{key}' was disabled. Proceeding anyway.");
             }
 
-            ExecuteAction(element, descriptor);
+            return element;
         }
 
         private AutomationElement FindMainWindow()
@@ -588,6 +710,34 @@ namespace Cerberus.ButtonAutomation
             };
         }
 
+        private static string SimplifyPatternName(string programmaticName)
+        {
+            if (string.IsNullOrWhiteSpace(programmaticName))
+            {
+                return "<unknown>";
+            }
+
+            string[] parts = programmaticName.Split('.', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 0)
+            {
+                return programmaticName;
+            }
+
+            string segment = parts[^1];
+            if (segment.Equals("Pattern", StringComparison.OrdinalIgnoreCase) && parts.Length >= 2)
+            {
+                segment = parts[^2];
+            }
+
+            segment = segment.Replace("PatternIdentifiers", "Pattern", StringComparison.OrdinalIgnoreCase);
+            if (!segment.EndsWith("Pattern", StringComparison.OrdinalIgnoreCase))
+            {
+                segment += "Pattern";
+            }
+
+            return segment;
+        }
+
         private static bool TryExecute(AutomationElement element, ButtonAction action)
         {
             try
@@ -727,6 +877,8 @@ namespace Cerberus.ButtonAutomation
                 case "invoke":
                 case "press":
                 case "run":
+                case "patterns":
+                case "diagnose":
                     if (arguments.Count == 0)
                     {
                         throw new InvalidOperationException("Missing button key for invoke command.");
@@ -734,7 +886,14 @@ namespace Cerberus.ButtonAutomation
 
                     string key = arguments.Dequeue();
                     var runner = new AutomationRunner(descriptors, windowRegex);
-                    runner.InvokeButton(key);
+                    if (command is "patterns" or "diagnose")
+                    {
+                        runner.PrintPatternDiagnostics(key);
+                    }
+                    else
+                    {
+                        runner.InvokeButton(key);
+                    }
                     return 0;
 
                 default:
@@ -762,6 +921,7 @@ namespace Cerberus.ButtonAutomation
             Console.WriteLine("Usage:");
             Console.WriteLine("  Test_C.exe [--dump <path>] [--window-regex <regex>] list");
             Console.WriteLine("  Test_C.exe [--dump <path>] [--window-regex <regex>] invoke <button-key>");
+            Console.WriteLine("  Test_C.exe [--dump <path>] [--window-regex <regex>] patterns <button-key>");
             Console.WriteLine();
             Console.WriteLine($"Default inspect dump path: {defaultDump}");
             Console.WriteLine($"Default window regex: {DefaultWindowRegex}");

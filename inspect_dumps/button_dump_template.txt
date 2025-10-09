@@ -242,14 +242,14 @@ How found:	Selected from tree...
 Name:	"auto"
 ControlType:	UIA_ListItemControlTypeId (0xC357)
 LocalizedControlType:	"list item"
-BoundingRectangle:	{l:802 t:378 r:1063 b:392}
+BoundingRectangle:	{l:804 t:378 r:1065 b:392}
 IsEnabled:	true
 IsOffscreen:	false
 IsKeyboardFocusable:	true
 HasKeyboardFocus:	false
 AccessKey:	""
-ProcessId:	45180
-ProviderDescription:	"[pid:45180,providerId:0x0 Main(parent link):Microsoft: MSAA Proxy (unmanaged:UIAutomationCore.DLL)]"
+ProcessId:	29728
+ProviderDescription:	"[pid:29728,providerId:0x0 Main(parent link):Microsoft: MSAA Proxy (unmanaged:uiautomationcore.dll)]"
 IsPassword:	false
 HelpText:	""
 IsDialog:	false
@@ -260,7 +260,7 @@ LegacyIAccessible.Help:	""
 LegacyIAccessible.KeyboardShortcut:	""
 LegacyIAccessible.Name:	"auto"
 LegacyIAccessible.Role:	list item (0x22)
-LegacyIAccessible.State:	selected,focusable,selectable (0x300002)
+LegacyIAccessible.State:	focusable,selectable (0x300000)
 LegacyIAccessible.Value:	""
 SelectionItem.IsSelected:	false
 SelectionItem.SelectionContainer:	"" list
@@ -279,7 +279,7 @@ IsObjectModelPatternAvailable:	false
 IsRangeValuePatternAvailable:	false
 IsScrollItemPatternAvailable:	false
 IsScrollPatternAvailable:	false
-IsSelectionItemPatternAvailable:	false
+IsSelectionItemPatternAvailable:	true
 IsSelectionPatternAvailable:	false
 IsSpreadsheetItemPatternAvailable:	false
 IsSpreadsheetPatternAvailable:	false
@@ -318,8 +318,14 @@ Ancestors:	"" list
 
 [button5]
 AutomationId:
+Name:	"auto"
+ControlType: 
+Patterns:
+IsEnabled:
+
+[button6]
+AutomationId:
 Name:
 ControlType:
 Patterns:
 IsEnabled:
-

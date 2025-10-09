@@ -55,5 +55,7 @@ def File_OpenTemplate_auto(timeout: float = 90.0):
     return invoke_button("button4", timeout=timeout)
 
 if __name__ == "__main__":
+    #button_open_template()
+    #File_OpenTemplate()
     File_OpenTemplate_auto()
 
