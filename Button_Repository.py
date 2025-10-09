@@ -74,6 +74,10 @@ def Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS(timeout: float = 90
     """Fire the repository button that opens the Sensitivity Analysis -> File -> Open Template->Auto."""
     return invoke_button("button9", timeout=timeout)
 
+def Parameter_Matrix_Wizard(timeout: float = 90.0):
+    """Fire the repository button that opens the Sensitivity Analysis -> File -> Open Template->Auto."""
+    return invoke_button("button10", timeout=timeout)
+
 if __name__ == "__main__":
     # button_open_template()
     # File_OpenTemplate()
@@ -82,5 +86,6 @@ if __name__ == "__main__":
     # Parameters_POOH()
     # Sensitivity_Setting_Outputs()
     # Parameters_Maximum_Surface_Weight_During_POOH()
-    Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS()
+    # Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS()
+    Parameter_Matrix_Wizard()
 
