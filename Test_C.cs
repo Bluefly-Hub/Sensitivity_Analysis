@@ -642,9 +642,10 @@ namespace Cerberus.ButtonAutomation
             }
 
             AutomationElement currentRoot = root;
+            string mainWindowName = root.Current.Name ?? string.Empty;
             foreach (string ancestorName in descriptor.Ancestors)
             {
-                if (string.IsNullOrWhiteSpace(ancestorName))
+                if (ShouldSkipAncestor(ancestorName, mainWindowName))
                 {
                     continue;
                 }
@@ -687,6 +688,7 @@ namespace Cerberus.ButtonAutomation
                 return mainWindow;
             }
 
+            string mainWindowName = mainWindow.Current.Name ?? string.Empty;
             AutomationElement current = mainWindow;
             IEnumerable<string> orderedAncestors = descriptor.Ancestors
                 .Where(name => !string.IsNullOrWhiteSpace(name))
@@ -694,6 +696,11 @@ namespace Cerberus.ButtonAutomation
 
             foreach (string ancestorName in orderedAncestors)
             {
+                if (ShouldSkipAncestor(ancestorName, mainWindowName))
+                {
+                    continue;
+                }
+
                 AutomationElement? match = FindAncestor(current, ancestorName)
                     ?? FindAncestor(mainWindow, ancestorName)
                     ?? FindAncestor(AutomationElement.RootElement, ancestorName);
@@ -705,6 +712,27 @@ namespace Cerberus.ButtonAutomation
             }
 
             return current;
+        }
+
+        private static bool ShouldSkipAncestor(string ancestorName, string mainWindowName)
+        {
+            if (string.IsNullOrWhiteSpace(ancestorName))
+            {
+                return true;
+            }
+
+            if (!string.IsNullOrEmpty(mainWindowName) &&
+                ancestorName.Equals(mainWindowName, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (ancestorName.StartsWith("Desktop", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static void TryExpandOrInvoke(AutomationElement element)
