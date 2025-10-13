@@ -951,7 +951,7 @@ Children:	Container has no children
 Ancestors:	
 	"Value List:" list
 	"Edit Values:" pane
-	" Parameter Value Editor - BHA Depth" window
+	" Parameter Value Editor - *" window
 	" Sensitivity Parameter Matrix Wizard" window
 	" Sensitivity Analysis Wizard - {{FILE_NAME}}" window
 	"Orpheus - <{{FILE_NAME}} (local)>     " window
@@ -1109,7 +1109,7 @@ Previous:	"ft" group
 Other Props:	Object has no additional properties
 Children:	Container has no children
 Ancestors:	
-	" Parameter Value Editor - BHA Depth" window
+	" Parameter Value Editor - *" window
 	" Sensitivity Parameter Matrix Wizard" window
 	" Sensitivity Analysis Wizard - {{FILE_NAME}}" window
 	"Orpheus - <{{FILE_NAME}} (local)>     " window
@@ -1599,13 +1599,89 @@ Children:	Container has no children
 Ancestors:	
 	"Value List:" list
 	"Edit Values:" pane
-	" Parameter Value Editor - Force on End - POOH" window
+	" Parameter Value Editor - *" window
 	" Sensitivity Parameter Matrix Wizard" window
 	" Sensitivity Analysis Wizard - Abbey A-02" window
 	"Orpheus - <Abbey A-02 (local)>     " window
 
 
 [button21]
+How found:	Selected from tree...
+Name:	"0"
+ControlType:	UIA_ListItemControlTypeId (0xC357)
+LocalizedControlType:	"list item"
+BoundingRectangle:	{l:1208 t:345 r:1341 b:359}
+IsEnabled:	true
+IsOffscreen:	false
+IsKeyboardFocusable:	true
+HasKeyboardFocus:	false
+AccessKey:	""
+ProcessId:	34500
+ProviderDescription:	"[pid:34500,providerId:0x0 Main(parent link):Microsoft: MSAA Proxy (unmanaged:UIAutomationCore.dll)]"
+IsPassword:	false
+HelpText:	""
+IsDialog:	false
+LegacyIAccessible.ChildId:	1
+LegacyIAccessible.DefaultAction:	"Double Click"
+LegacyIAccessible.Description:	""
+LegacyIAccessible.Help:	""
+LegacyIAccessible.KeyboardShortcut:	""
+LegacyIAccessible.Name:	"0"
+LegacyIAccessible.Role:	list item (0x22)
+LegacyIAccessible.State:	focusable,selectable (0x300000)
+LegacyIAccessible.Value:	""
+SelectionItem.IsSelected:	false
+SelectionItem.SelectionContainer:	"Value List:" list
+IsAnnotationPatternAvailable:	false
+IsDragPatternAvailable:	false
+IsDockPatternAvailable:	false
+IsDropTargetPatternAvailable:	false
+IsExpandCollapsePatternAvailable:	false
+IsGridItemPatternAvailable:	false
+IsGridPatternAvailable:	false
+IsInvokePatternAvailable:	true
+IsItemContainerPatternAvailable:	false
+IsLegacyIAccessiblePatternAvailable:	true
+IsMultipleViewPatternAvailable:	false
+IsObjectModelPatternAvailable:	false
+IsRangeValuePatternAvailable:	false
+IsScrollItemPatternAvailable:	false
+IsScrollPatternAvailable:	false
+IsSelectionItemPatternAvailable:	true
+IsSelectionPatternAvailable:	false
+IsSpreadsheetItemPatternAvailable:	false
+IsSpreadsheetPatternAvailable:	false
+IsStylesPatternAvailable:	false
+IsSynchronizedInputPatternAvailable:	false
+IsTableItemPatternAvailable:	false
+IsTablePatternAvailable:	false
+IsTextChildPatternAvailable:	false
+IsTextEditPatternAvailable:	false
+IsTextPatternAvailable:	false
+IsTextPattern2Available:	false
+IsTogglePatternAvailable:	false
+IsTransformPatternAvailable:	false
+IsTransform2PatternAvailable:	false
+IsValuePatternAvailable:	false
+IsVirtualizedItemPatternAvailable:	false
+IsWindowPatternAvailable:	false
+IsCustomNavigationPatternAvailable:	false
+IsSelectionPattern2Available:	false
+FirstChild:	[null]
+LastChild:	[null]
+Next:	[null]
+Previous:	[null]
+Other Props:	Object has no additional properties
+Children:	Container has no children
+Ancestors:	
+	"Value List:" list
+	"Edit Values:" pane
+	" Parameter Value Editor - *" window
+	" Sensitivity Parameter Matrix Wizard" window
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
+
+
 
 [button22]
 

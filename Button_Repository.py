@@ -1,6 +1,6 @@
 import subprocess, sys
 from pathlib import Path
-from cerberus_sensitivity.automation.button_bridge_CSharp_to_py import invoke_button, set_button_value
+from cerberus_sensitivity.automation.button_bridge_CSharp_to_py import invoke_button, list_buttons, set_button_value
 
 # def Sensitivity_Analysis():
 #     """Invoke the Sensitivity Analysis menu via the compiled C# helper."""
@@ -87,7 +87,7 @@ def Edit_cmdDelete(timeout: float = 60.0):
     """Trigger the Delete button in the value list editor (button13)."""
     return invoke_button("button13", timeout=timeout)
 
-def Edit_Value_Depth(val: str, timeout: float = 1):
+def Parameter_Value_Editor_Set_Value(val: str, timeout: float = 10):
     """Set the depth value in the editor (button14)."""
     return set_button_value("button14", value=val, timeout=timeout)
 
@@ -116,6 +116,9 @@ def Value_List_FOE_1(timeout: float = 60.0):
     """Open the value list entry for FOE value 1 (button20)."""
     return invoke_button("button20", timeout=timeout)
 
+def Value_List_Item0(timeout: float = 60.0):
+    """Open the value list entry for FOE value 2 (button21)."""
+    return invoke_button("button21", timeout=timeout)
 
 if __name__ == "__main__":
     # button_open_template()
@@ -130,12 +133,16 @@ if __name__ == "__main__":
     # Parameter_Matrix_BHA_Depth_Row0()
     # Value_List_Depth_1()
     # Edit_cmdDelete()
-    # Edit_Value_Depth("1000")
+    # Parameter_Value_Editor_Set_Value("1000")
     # Edit_cmdAdd()
     # Edit_cmdOK() 
     # Parameter_Matrix_PFD_Row0()
     # Value_List_PFD_1()
     # Parameter_Matrix_FOE_Row0()
-    Value_List_FOE_1()
+    # Value_List_FOE_1()
+    Value_List_Item0()
+
+
+   # list_buttons
 
 
