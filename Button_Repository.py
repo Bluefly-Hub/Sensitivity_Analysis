@@ -99,6 +99,12 @@ def Edit_cmdOK(timeout: float = 60.0):
     """Trigger the OK button in the value list editor (button16)."""
     return invoke_button("button16", timeout=timeout)
 
+def Parameter_Matrix_PFD_Row0(timeout: float = 60.0):
+    """Select the Parameter Matrix grid cell for PFD row 0 (button17)."""
+    return invoke_button("button17", timeout=timeout)
+
+
+
 if __name__ == "__main__":
     # button_open_template()
     # File_OpenTemplate()
@@ -114,5 +120,6 @@ if __name__ == "__main__":
     # Edit_cmdDelete()
     # Edit_Value_Depth("1000")
     # Edit_cmdAdd()
-    Edit_cmdOK()
+    # Edit_cmdOK() 
+     Parameter_Matrix_PFD_Row0()
 

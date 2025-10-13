@@ -13,10 +13,9 @@
         },
         {
             "name": "Python: Button_Repository.py",
-            "type": "debugpy",
+            "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}\\Button_Repository.py",
-            "python": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+            "program": "${workspaceFolder}/Button_Repository.py",
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "justMyCode": true,
