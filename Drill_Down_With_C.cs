@@ -30,6 +30,7 @@ namespace Cerberus.ButtonAutomation
             ControlType? controlType,
             IReadOnlyList<string> patterns,
             bool? isEnabled,
+            string? selectionContainer,
             IReadOnlyList<string> rawDump,
             IReadOnlyList<string> ancestors)
         {
@@ -39,6 +40,7 @@ namespace Cerberus.ButtonAutomation
             ControlType = controlType;
             Patterns = patterns;
             IsEnabled = isEnabled;
+            SelectionContainer = string.IsNullOrWhiteSpace(selectionContainer) ? null : selectionContainer;
             RawDump = rawDump;
             Ancestors = ancestors;
             PreferredAction = DeterminePreferredAction(controlType, patterns);
@@ -50,6 +52,7 @@ namespace Cerberus.ButtonAutomation
         public ControlType? ControlType { get; }
         public IReadOnlyList<string> Patterns { get; }
         public bool? IsEnabled { get; }
+        public string? SelectionContainer { get; }
         public IReadOnlyList<string> RawDump { get; }
         public IReadOnlyList<string> Ancestors { get; }
         public ButtonAction PreferredAction { get; }
@@ -139,6 +142,7 @@ namespace Cerberus.ButtonAutomation
             IReadOnlyList<string> patterns = BuildPatternList();
             bool? isEnabled = AutomationParsers.ParseNullableBool(GetField("IsEnabled") ?? GetField("Is Enabled"));
             IReadOnlyList<string> ancestors = AutomationParsers.ParseAncestors(RawLines);
+            string? selectionContainer = AutomationParsers.ParseSelectionContainer(RawLines);
 
             return new ButtonDescriptor(
                 Key,
@@ -147,6 +151,7 @@ namespace Cerberus.ButtonAutomation
                 controlType,
                 patterns,
                 isEnabled,
+                selectionContainer,
                 RawLines.ToList(),
                 ancestors);
         }
@@ -197,6 +202,12 @@ namespace Cerberus.ButtonAutomation
             ["ControlType.RadioButton"] = ControlType.RadioButton,
             ["Hyperlink"] = ControlType.Hyperlink,
             ["ControlType.Hyperlink"] = ControlType.Hyperlink,
+            ["ListItem"] = ControlType.ListItem,
+            ["ControlType.ListItem"] = ControlType.ListItem,
+            ["List"] = ControlType.List,
+            ["ControlType.List"] = ControlType.List,
+            ["Pane"] = ControlType.Pane,
+            ["ControlType.Pane"] = ControlType.Pane,
         };
 
         public static ControlType? ParseControlType(string? value)
@@ -381,6 +392,30 @@ namespace Cerberus.ButtonAutomation
             return ancestors;
         }
 
+        public static string? ParseSelectionContainer(IEnumerable<string> rawLines)
+        {
+            foreach (string line in rawLines)
+            {
+                if (line.StartsWith("SelectionItem.SelectionContainer", StringComparison.OrdinalIgnoreCase))
+                {
+                    int separatorIndex = line.IndexOf(':');
+                    if (separatorIndex <= 0 || separatorIndex >= line.Length - 1)
+                    {
+                        continue;
+                    }
+
+                    string remainder = line[(separatorIndex + 1)..].Trim();
+                    string? name = StripQuotes(ExtractAncestorName(remainder));
+                    if (!string.IsNullOrEmpty(name))
+                    {
+                        return name;
+                    }
+                }
+            }
+
+            return null;
+        }
+
         private static string? ExtractAncestorName(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -473,6 +508,7 @@ namespace Cerberus.ButtonAutomation
         private readonly IReadOnlyDictionary<string, ButtonDescriptor> _descriptors;
         private readonly Regex _windowRegex;
         private readonly Dictionary<string, IReadOnlyList<string>> _resolvedAncestorCache = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, string?> _resolvedSelectionContainerCache = new(StringComparer.OrdinalIgnoreCase);
         private string _mainWindowName = string.Empty;
         private string? _currentFileName;
 
@@ -552,6 +588,7 @@ namespace Cerberus.ButtonAutomation
             }
 
             _resolvedAncestorCache.Clear();
+            _resolvedSelectionContainerCache.Clear();
             _mainWindowName = string.Empty;
             _currentFileName = null;
 
@@ -670,6 +707,16 @@ namespace Cerberus.ButtonAutomation
                 }
             }
 
+            AutomationElement? containerElement = ResolveSelectionContainerElement(root, searchRoot, descriptor);
+            if (containerElement is not null)
+            {
+                element = SelectFirstChild(containerElement, descriptor);
+                if (element is not null)
+                {
+                    return element;
+                }
+            }
+
             if (!ReferenceEquals(searchRoot, root))
             {
                 element = root.FindFirst(TreeScope.Descendants, searchCondition);
@@ -699,6 +746,101 @@ namespace Cerberus.ButtonAutomation
             }
 
             return null;
+        }
+
+        private AutomationElement? ResolveSelectionContainerElement(AutomationElement mainWindow, AutomationElement searchRoot, ButtonDescriptor descriptor)
+        {
+            string? resolvedName = GetResolvedSelectionContainerName(descriptor);
+            if (string.IsNullOrEmpty(resolvedName))
+            {
+                return null;
+            }
+
+            if (IsNameMatch(searchRoot, resolvedName))
+            {
+                return searchRoot;
+            }
+
+            AutomationElement? container = FindAncestor(searchRoot, resolvedName)
+                ?? FindAncestor(mainWindow, resolvedName)
+                ?? FindAncestor(AutomationElement.RootElement, resolvedName);
+
+            return container;
+        }
+
+        private AutomationElement? SelectFirstChild(AutomationElement container, ButtonDescriptor descriptor)
+        {
+            ControlType? desiredControlType = descriptor.ControlType;
+
+            Condition childCondition = desiredControlType is not null
+                ? new PropertyCondition(AutomationElement.ControlTypeProperty, desiredControlType)
+                : Condition.TrueCondition;
+
+            try
+            {
+                AutomationElementCollection children = container.FindAll(TreeScope.Children, childCondition);
+                foreach (AutomationElement child in children)
+                {
+                    if (MatchesDescriptor(child, desiredControlType))
+                    {
+                        return child;
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore lookup failures and fall back to tree walker enumeration.
+            }
+
+            try
+            {
+                AutomationElement? current = TreeWalker.RawViewWalker.GetFirstChild(container);
+                while (current is not null)
+                {
+                    if (MatchesDescriptor(current, desiredControlType))
+                    {
+                        return current;
+                    }
+
+                    current = TreeWalker.RawViewWalker.GetNextSibling(current);
+                }
+            }
+            catch
+            {
+                // Ignore tree walker failures.
+            }
+
+            return null;
+        }
+
+        private string? GetResolvedSelectionContainerName(ButtonDescriptor descriptor)
+        {
+            if (_resolvedSelectionContainerCache.TryGetValue(descriptor.Key, out var cached))
+            {
+                return cached;
+            }
+
+            string? resolved = descriptor.SelectionContainer is null
+                ? null
+                : ResolveAncestorName(descriptor.SelectionContainer);
+            _resolvedSelectionContainerCache[descriptor.Key] = resolved;
+            return resolved;
+        }
+
+        private static bool MatchesDescriptor(AutomationElement element, ControlType? expectedControlType)
+        {
+            if (expectedControlType is not null && element.Current.ControlType != expectedControlType)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool IsNameMatch(AutomationElement element, string expectedName)
+        {
+            string actualName = element.Current.Name ?? string.Empty;
+            return NameMatches(expectedName, actualName);
         }
 
         private void EnsureAncestorsOpen(AutomationElement root, ButtonDescriptor descriptor)
