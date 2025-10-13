@@ -103,23 +103,39 @@ def Parameter_Matrix_PFD_Row0(timeout: float = 60.0):
     """Select the Parameter Matrix grid cell for PFD row 0 (button17)."""
     return invoke_button("button17", timeout=timeout)
 
+def Value_List_PFD_1(timeout: float = 60.0):
+    """Open the value list entry for PFD value 1 (button18)."""
+    return invoke_button("button18", timeout=timeout)
+
+def Parameter_Matrix_FOE_Row0(timeout: float = 60.0):
+    """Select the Parameter Matrix grid cell for FOE row 0 (button19)."""
+    return invoke_button("button19", timeout=timeout)
+
+
+def Value_List_FOE_1(timeout: float = 60.0):
+    """Open the value list entry for FOE value 1 (button20)."""
+    return invoke_button("button20", timeout=timeout)
 
 
 if __name__ == "__main__":
-    button_open_template()
-    File_OpenTemplate()
-    File_OpenTemplate_auto()
-    Parameters_Pipe_fluid_density()
-    Parameters_POOH()
-    Sensitivity_Setting_Outputs()
-    Parameters_Maximum_Surface_Weight_During_POOH()
-    Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS()
-    Parameter_Matrix_Wizard()
-    Parameter_Matrix_BHA_Depth_Row0()
-    Value_List_Depth_1()
-    Edit_cmdDelete()
-    Edit_Value_Depth("1000")
-    Edit_cmdAdd()
-    Edit_cmdOK() 
-    Parameter_Matrix_PFD_Row0()
+    # button_open_template()
+    # File_OpenTemplate()
+    # File_OpenTemplate_auto()
+    # Parameters_Pipe_fluid_density()
+    # Parameters_POOH()
+    # Sensitivity_Setting_Outputs()
+    # Parameters_Maximum_Surface_Weight_During_POOH()
+    # Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS()
+    # Parameter_Matrix_Wizard()
+    # Parameter_Matrix_BHA_Depth_Row0()
+    # Value_List_Depth_1()
+    # Edit_cmdDelete()
+    # Edit_Value_Depth("1000")
+    # Edit_cmdAdd()
+    # Edit_cmdOK() 
+    # Parameter_Matrix_PFD_Row0()
+    # Value_List_PFD_1()
+    # Parameter_Matrix_FOE_Row0()
+    Value_List_FOE_1()
+
 

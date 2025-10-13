@@ -472,6 +472,9 @@ namespace Cerberus.ButtonAutomation
     {
         private readonly IReadOnlyDictionary<string, ButtonDescriptor> _descriptors;
         private readonly Regex _windowRegex;
+        private readonly Dictionary<string, IReadOnlyList<string>> _resolvedAncestorCache = new(StringComparer.OrdinalIgnoreCase);
+        private string _mainWindowName = string.Empty;
+        private string? _currentFileName;
 
         public AutomationRunner(IReadOnlyDictionary<string, ButtonDescriptor> descriptors, string windowPattern)
         {
@@ -548,6 +551,10 @@ namespace Cerberus.ButtonAutomation
                     $"Button '{key}' is missing search metadata (AutomationId/Name/ControlType). Please update the inspect dump.");
             }
 
+            _resolvedAncestorCache.Clear();
+            _mainWindowName = string.Empty;
+            _currentFileName = null;
+
             AutomationElement mainWindow = FindMainWindow();
             FocusWindow(mainWindow);
             AutomationElement? element = FindElement(mainWindow, descriptor);
@@ -587,6 +594,8 @@ namespace Cerberus.ButtonAutomation
                 string title = window.Current.Name ?? string.Empty;
                 if (_windowRegex.IsMatch(title))
                 {
+                    _mainWindowName = title;
+                    _currentFileName = ExtractFileNameFromTitle(title);
                     return window;
                 }
             }
@@ -692,16 +701,17 @@ namespace Cerberus.ButtonAutomation
             return null;
         }
 
-        private static void EnsureAncestorsOpen(AutomationElement root, ButtonDescriptor descriptor)
+        private void EnsureAncestorsOpen(AutomationElement root, ButtonDescriptor descriptor)
         {
-            if (descriptor.Ancestors.Count == 0)
+            IReadOnlyList<string> resolvedAncestors = GetResolvedAncestors(descriptor);
+            if (resolvedAncestors.Count == 0)
             {
                 return;
             }
 
             AutomationElement currentRoot = root;
-            string mainWindowName = root.Current.Name ?? string.Empty;
-            foreach (string ancestorName in descriptor.Ancestors)
+            string mainWindowName = _mainWindowName;
+            foreach (string ancestorName in resolvedAncestors)
             {
                 if (ShouldSkipAncestor(ancestorName, mainWindowName))
                 {
@@ -709,6 +719,7 @@ namespace Cerberus.ButtonAutomation
                 }
 
                 AutomationElement? ancestor = FindAncestor(currentRoot, ancestorName);
+                ancestor ??= FindAncestor(root, ancestorName);
                 ancestor ??= FindAncestor(AutomationElement.RootElement, ancestorName);
                 if (ancestor is null)
                 {
@@ -768,14 +779,15 @@ namespace Cerberus.ButtonAutomation
 
         private AutomationElement? GetSearchRoot(AutomationElement mainWindow, ButtonDescriptor descriptor)
         {
-            if (descriptor.Ancestors.Count == 0)
+            IReadOnlyList<string> resolvedAncestors = GetResolvedAncestors(descriptor);
+            if (resolvedAncestors.Count == 0)
             {
                 return mainWindow;
             }
 
-            string mainWindowName = mainWindow.Current.Name ?? string.Empty;
+            string mainWindowName = _mainWindowName;
             AutomationElement current = mainWindow;
-            IEnumerable<string> orderedAncestors = descriptor.Ancestors
+            IEnumerable<string> orderedAncestors = resolvedAncestors
                 .Where(name => !string.IsNullOrWhiteSpace(name))
                 .Reverse();
 
@@ -811,6 +823,81 @@ namespace Cerberus.ButtonAutomation
             escaped = escaped.Replace(@"\?", ".");
             string anchored = $"^{escaped}$";
             return new Regex(anchored, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        }
+
+        private IReadOnlyList<string> GetResolvedAncestors(ButtonDescriptor descriptor)
+        {
+            if (_resolvedAncestorCache.TryGetValue(descriptor.Key, out var cached))
+            {
+                return cached;
+            }
+
+            List<string> resolved = descriptor.Ancestors
+                .Select(ResolveAncestorName)
+                .ToList();
+            _resolvedAncestorCache[descriptor.Key] = resolved;
+            return resolved;
+        }
+
+        private string ResolveAncestorName(string ancestorName)
+        {
+            if (string.IsNullOrWhiteSpace(ancestorName))
+            {
+                return ancestorName;
+            }
+
+            string resolved = ancestorName;
+
+            if (!string.IsNullOrEmpty(_mainWindowName))
+            {
+                resolved = ReplaceToken(resolved, "{{MAIN_WINDOW}}", _mainWindowName);
+                resolved = ReplaceToken(resolved, "{{MAIN_WINDOW_NAME}}", _mainWindowName);
+            }
+
+            if (!string.IsNullOrEmpty(_currentFileName))
+            {
+                resolved = ReplaceToken(resolved, "{{FILE_NAME}}", _currentFileName);
+                resolved = ReplaceToken(resolved, "{{FILENAME}}", _currentFileName);
+            }
+
+            resolved = resolved.Trim('\r', '\n');
+
+            if (ContainsWildcard(resolved) && !string.IsNullOrEmpty(_mainWindowName))
+            {
+                Regex regex = CreateAncestorRegex(resolved);
+                if (regex.IsMatch(_mainWindowName))
+                {
+                    return _mainWindowName;
+                }
+            }
+
+            return resolved;
+        }
+
+        private static string ReplaceToken(string input, string token, string replacement)
+        {
+            if (string.IsNullOrEmpty(input) || string.IsNullOrEmpty(token))
+            {
+                return input;
+            }
+
+            return input.Replace(token, replacement, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string? ExtractFileNameFromTitle(string title)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                return null;
+            }
+
+            Match match = Regex.Match(title, @"<\s*(.+?)\s*\(local\)\s*>", RegexOptions.IgnoreCase);
+            if (match.Success)
+            {
+                return match.Groups[1].Value.Trim();
+            }
+
+            return null;
         }
 
         private static bool ShouldSkipAncestor(string ancestorName, string mainWindowName)
