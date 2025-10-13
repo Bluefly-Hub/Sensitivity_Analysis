@@ -1,18 +1,15 @@
-# import uiautomation as uia
 import subprocess, sys
-# import time
-# import pythoncom
 from pathlib import Path
-# from pywinauto import Application, Desktop
-# from pywinauto.uia_defines import NoPatternInterfaceError
 from cerberus_sensitivity.automation.button_bridge_CSharp_to_py import invoke_button, set_button_value
 
-# Make misses fast
-#uia.SetGlobalSearchTimeout(1)
+# def Sensitivity_Analysis():
+#     """Invoke the Sensitivity Analysis menu via the compiled C# helper."""
+#     ...
+# Keeping the layout similar to your original script, but pruning unused imports.
 
 
 def Sensitivity_Analysis():
-    """Invoke the Sensitivity Analysis menu via the compiled C# helper."""
+    """Launch the helper executable to open the Sensitivity Analysis menu."""
     exe_path = Path(__file__).resolve().parent / "bin" / "Debug" / "net9.0-windows" / "Drill_Down_With_C.exe"
     if not exe_path.exists():
         raise FileNotFoundError(f"Expected helper executable not found: {exe_path}")
@@ -38,65 +35,69 @@ def Sensitivity_Analysis():
 
 
 def button_open_template(timeout: float = 180.0):
-    """Fire the repository button that opens Sensitivity Analysis -> File -> Open Template."""
+    """Navigate to Tools > Sensitivity Analysis... via repository button1."""
     return invoke_button("button1", timeout=timeout)
 
 
 def button_exit_wizard(timeout: float = 90.0):
-    """Fire the repository button that closes the Sensitivity Analysis wizard."""
+    """Invoke the wizard Exit button (button2)."""
     return invoke_button("button2", timeout=timeout)
 
 def File_OpenTemplate(timeout: float = 90.0):
-    """Fire the repository button that opens the Sensitivity Analysis -> File -> Open Template."""
+    """Open Sensitivity Analysis > File > Open Template (button3)."""
     return invoke_button("button3", timeout=timeout)
 
 def File_OpenTemplate_auto(timeout: float = 90.0):
-    """Fire the repository button that opens the Sensitivity Analysis -> File -> Open Template->Auto."""
+    """Choose the 'auto' template entry (button4)."""
     return invoke_button("button4", timeout=timeout)
 
 def Parameters_Pipe_fluid_density(timeout: float = 90.0):
-    """Fire the repository button that opens the Sensitivity Analysis -> File -> Open Template->Auto."""
+    """Toggle the Pipe Fluid Density parameter checkbox (button5)."""
     return invoke_button("button5", timeout=timeout)
 
 def Parameters_POOH(timeout: float = 90.0):
-    """Fire the repository button that opens the Sensitivity Analysis -> File -> Open Template->Auto."""
+    """Toggle the POOH parameter checkbox (button6)."""
     return invoke_button("button6", timeout=timeout)
 
 def Sensitivity_Setting_Outputs(timeout: float = 90.0):
-    """Fire the repository button that opens the Sensitivity Analysis -> File -> Open Template->Auto."""
+    """Select the Outputs pane tab (button7)."""
     return invoke_button("button7", timeout=timeout)
 
 def Parameters_Maximum_Surface_Weight_During_POOH(timeout: float = 90.0):
-    """Fire the repository button that opens the Sensitivity Analysis -> File -> Open Template->Auto."""
+    """Toggle Maximum surface weight during POOH (button8)."""
     return invoke_button("button8", timeout=timeout)
 
 def Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS(timeout: float = 90.0):
-    """Fire the repository button that opens the Sensitivity Analysis -> File -> Open Template->Auto."""
+    """Toggle Maximum pipe stress during POOH (% of YS) (button9)."""
     return invoke_button("button9", timeout=timeout)
 
 def Parameter_Matrix_Wizard(timeout: float = 90.0):
-    """Fire the repository button that opens the Sensitivity Analysis -> File -> Open Template->Auto."""
+    """Open the Parameter Matrix Wizard button (button10)."""
     return invoke_button("button10", timeout=timeout)
 
 def Parameter_Matrix_BHA_Depth_Row0(timeout: float = 60.0):
-    """Set the Parameter Matrix row 0 BHA Depth value."""
+    """Select the Parameter Matrix grid cell for BHA Depth row 0 (button11)."""
     return invoke_button("button11", timeout=timeout)
 
 def Value_List_Depth_1(timeout: float = 60.0):
-    """Set the Parameter Matrix row 0 BHA Depth value."""
+    """Open the value list entry for Depth value 1 (button12)."""
     return invoke_button("button12", timeout=timeout)
 
 def Edit_cmdDelete(timeout: float = 60.0):
-    """Set the Parameter Matrix row 0 BHA Depth value."""
+    """Trigger the Delete button in the value list editor (button13)."""
     return invoke_button("button13", timeout=timeout)
 
 def Edit_Value_Depth(val: str, timeout: float = 1):
-    """Set the Parameter Matrix row 0 BHA Depth value."""
+    """Set the depth value in the editor (button14)."""
     return set_button_value("button14", value=val, timeout=timeout)
 
 def Edit_cmdAdd(timeout: float = 60.0):
-    """Set the Parameter Matrix row 0 BHA Depth value."""
+    """Trigger the Add button in the value list editor (button15)."""
     return invoke_button("button15", timeout=timeout)
+
+def Edit_cmdOK(timeout: float = 60.0):
+    """Trigger the OK button in the value list editor (button16)."""
+    return invoke_button("button16", timeout=timeout)
 
 if __name__ == "__main__":
     # button_open_template()
@@ -112,5 +113,6 @@ if __name__ == "__main__":
     # Value_List_Depth_1()
     # Edit_cmdDelete()
     # Edit_Value_Depth("1000")
-    Edit_cmdAdd()
+    # Edit_cmdAdd()
+    Edit_cmdOK()
 

@@ -5,11 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "C#: Test_C",
+            "name": "C#: Drill_Down_With_C",
             "type": "dotnet",
             "request": "launch",
-            "projectPath": "${workspaceFolder}\\Test_C.csproj",
-            "launchConfigurationId": "TargetFramework=;Test_C"
+            "projectPath": "${workspaceFolder}\\Drill_Down_With_C.csproj",
+            "launchConfigurationId": "TargetFramework=;Drill_Down_With_C"
+        },
+        {
+            "name": "Python: Button_Repository.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}\\Button_Repository.py",
+            "python": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "logToFile": true
         }
     ]
 }
