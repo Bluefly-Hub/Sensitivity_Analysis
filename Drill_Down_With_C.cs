@@ -720,23 +720,50 @@ namespace Cerberus.ButtonAutomation
             }
         }
 
-        private static AutomationElement? FindAncestor(AutomationElement root, string name)
+        private static AutomationElement? FindAncestor(AutomationElement root, string pattern)
         {
-            if (string.IsNullOrWhiteSpace(name))
+            if (string.IsNullOrWhiteSpace(pattern))
             {
                 return null;
             }
 
+            bool allowWildcard = ContainsWildcard(pattern);
             try
             {
-                return root.FindFirst(
+                if (!allowWildcard)
+                {
+                    return root.FindFirst(
+                        TreeScope.Descendants,
+                        new PropertyCondition(AutomationElement.NameProperty, pattern));
+                }
+
+                Regex regex = CreateAncestorRegex(pattern);
+
+                string rootName = root.Current.Name ?? string.Empty;
+                if (regex.IsMatch(rootName))
+                {
+                    return root;
+                }
+
+                AutomationElementCollection allDescendants = root.FindAll(
                     TreeScope.Descendants,
-                    new PropertyCondition(AutomationElement.NameProperty, name));
+                    Condition.TrueCondition);
+
+                foreach (AutomationElement element in allDescendants)
+                {
+                    string candidateName = element.Current.Name ?? string.Empty;
+                    if (regex.IsMatch(candidateName))
+                    {
+                        return element;
+                    }
+                }
             }
             catch
             {
-                return null;
+                // Ignore lookup failures; caller will retry with alternate roots.
             }
+
+            return null;
         }
 
         private AutomationElement? GetSearchRoot(AutomationElement mainWindow, ButtonDescriptor descriptor)
@@ -770,6 +797,20 @@ namespace Cerberus.ButtonAutomation
             }
 
             return current;
+        }
+
+        private static bool ContainsWildcard(string value) =>
+            value.IndexOfAny(new[] { '*', '?' }) >= 0;
+
+        private static Regex CreateAncestorRegex(string pattern)
+        {
+            string escaped = Regex.Escape(pattern);
+            escaped = escaped.Replace(@"\.\*", ".*");
+            escaped = escaped.Replace(@"\.\?", ".?");
+            escaped = escaped.Replace(@"\*", ".*");
+            escaped = escaped.Replace(@"\?", ".");
+            string anchored = $"^{escaped}$";
+            return new Regex(anchored, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         }
 
         private static bool ShouldSkipAncestor(string ancestorName, string mainWindowName)
