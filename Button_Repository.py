@@ -8,33 +8,7 @@ from cerberus_sensitivity.automation.button_bridge_CSharp_to_py import invoke_bu
 # Keeping the layout similar to your original script, but pruning unused imports.
 
 
-def Sensitivity_Analysis():
-    """Launch the helper executable to open the Sensitivity Analysis menu."""
-    exe_path = Path(__file__).resolve().parent / "bin" / "Debug" / "net9.0-windows" / "Drill_Down_With_C.exe"
-    if not exe_path.exists():
-        raise FileNotFoundError(f"Expected helper executable not found: {exe_path}")
-
-    try:
-        result = subprocess.run(
-            [str(exe_path)],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-    except subprocess.CalledProcessError as exc:
-        if exc.stdout:
-            print(exc.stdout, end="", file=sys.stdout)
-        if exc.stderr:
-            print(exc.stderr, end="", file=sys.stderr)
-        raise RuntimeError(f"Sensitivity_Analysis failed via helper executable: {exe_path}") from exc
-    else:
-        if result.stdout:
-            print(result.stdout, end="")
-        if result.stderr:
-            print(result.stderr, end="", file=sys.stderr)
-
-
-def button_open_template(timeout: float = 180.0):
+def button_Sensitivity_Analysis(timeout: float = 180.0):
     """Navigate to Tools > Sensitivity Analysis... via repository button1."""
     return invoke_button("button1", timeout=timeout)
 
@@ -103,25 +77,28 @@ def Parameter_Matrix_PFD_Row0(timeout: float = 60.0):
     """Select the Parameter Matrix grid cell for PFD row 0 (button17)."""
     return invoke_button("button17", timeout=timeout)
 
-# def Value_List_PFD_1(timeout: float = 60.0):
-#     """Open the value list entry for PFD value 1 (button18)."""
-#     return invoke_button("button18", timeout=timeout)
 
 def Parameter_Matrix_FOE_Row0(timeout: float = 60.0):
     """Select the Parameter Matrix grid cell for FOE row 0 (button19)."""
     return invoke_button("button19", timeout=timeout)
 
 
-# def Value_List_FOE_1(timeout: float = 60.0):
-#     """Open the value list entry for FOE value 1 (button20)."""
-#     return invoke_button("button20", timeout=timeout)
-
 def Value_List_Item0(timeout: float = 60.0):
     """Open the value list entry for FOE value 2 (button21)."""
     return invoke_button("button21", timeout=timeout)
 
+def Sensitivity_Analysis_Calculate(timeout: float = 60.0):
+    """Open the value list entry for FOE value 2 (button22)."""
+    return invoke_button("button22", timeout=timeout)
+
+def Parameters_Minimum_Surface_Weight_During_RIH(timeout: float = 90.0):
+    """Toggle Minimum surface weight during RIH (button23)."""
+    return invoke_button("button23", timeout=timeout)
+
+
+
 if __name__ == "__main__":
-    # button_open_template()
+    # button_Sensitivity_Analysis()
     # File_OpenTemplate()
     # File_OpenTemplate_auto()
     # Parameters_Pipe_fluid_density()
@@ -140,7 +117,9 @@ if __name__ == "__main__":
     # Value_List_PFD_1()
     # Parameter_Matrix_FOE_Row0()
     # Value_List_FOE_1()
-    Value_List_Item0()
+    # Value_List_Item0()
+    # Sensitivity_Analysis_Calculate()
+    Parameters_Minimum_Surface_Weight_During_RIH()
 
 
    # list_buttons
