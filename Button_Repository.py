@@ -1,5 +1,8 @@
+import re
+from pathlib import Path
+from typing import Any, Mapping, Sequence
+
 import pandas as pd
-from typing import Any, Mapping
 
 from cerberus_sensitivity.automation.button_bridge_CSharp_to_py import (
     collect_table,
@@ -8,10 +11,16 @@ from cerberus_sensitivity.automation.button_bridge_CSharp_to_py import (
     set_button_value,
 )
 
+_DEFAULT_DUMP_PATH = Path(__file__).resolve().parent / "inspect_dumps" / "Windows_Inspect_Dump.txt"
 
-def _table_to_dataframe(table_payload: Mapping[str, Any]):
+
+def _table_to_dataframe(
+    table_payload: Mapping[str, Any],
+    *,
+    headers_override: Sequence[str] | None = None,
+) -> pd.DataFrame:
     rows = list(table_payload.get("Rows") or [])
-    headers = list(table_payload.get("Headers") or [])
+    headers = list(headers_override or table_payload.get("Headers") or [])
 
     if rows and headers and len(headers) != len(rows[0]):
         if len(headers) < len(rows[0]):
@@ -20,7 +29,42 @@ def _table_to_dataframe(table_payload: Mapping[str, Any]):
             headers = headers[: len(rows[0])]
 
     columns = headers if headers else None
-    return pd.DataFrame(rows, columns=columns)
+    df = pd.DataFrame(rows, columns=columns)
+    return df
+
+
+def _coerce_numeric_columns(df: pd.DataFrame) -> pd.DataFrame:
+    numeric_pattern = r"([-+]?\d*\.?\d+)"
+
+    for column in df.columns:
+        extracted = df[column].astype(str).str.extract(numeric_pattern)[0]
+        if extracted.notna().any():
+            numeric = pd.to_numeric(extracted, errors="coerce")
+            if numeric.notna().any():
+                df[column] = numeric
+    return df
+
+
+def _headers_from_dump(button_key: str, dump_path: Path | None = None) -> list[str]:
+    path = dump_path or _DEFAULT_DUMP_PATH
+    try:
+        text = Path(path).read_text(encoding="utf-8", errors="ignore")
+    except FileNotFoundError:
+        return []
+
+    section_pattern = re.compile(rf"\[{re.escape(button_key)}\](.*?)(?:\n\[|$)", re.DOTALL)
+    match = section_pattern.search(text)
+    if not match:
+        return []
+
+    header_block_match = re.search(
+        r"Table\.ColumnHeaders:(.*?)(?:\n[A-Z][^\n]*:|\Z)", match.group(1), re.DOTALL
+    )
+    if not header_block_match:
+        return []
+
+    raw_headers = re.findall(r'"([^"]+)"', header_block_match.group(1))
+    return [" ".join(value.split()) for value in raw_headers if value.strip()]
 
 # def Sensitivity_Analysis():
 #     """Invoke the Sensitivity Analysis menu via the compiled C# helper."""
@@ -108,7 +152,7 @@ def Value_List_Item0(timeout: float = 60.0):
     return invoke_button("button21", timeout=timeout)
 
 def Sensitivity_Analysis_Calculate(timeout: float = 60.0):
-    """Collect the Sensitivity Analysis results table (button22)."""
+    """Trigger the PAD Calculate button (button22)."""
     return invoke_button("button22", timeout=timeout)
 
 def Parameters_Minimum_Surface_Weight_During_RIH(timeout: float = 90.0):
@@ -119,6 +163,31 @@ def Sensitivity_Table(timeout: float = 90.0):
     """Sensitivity Table (button24)."""
     table_data = collect_table("button24", timeout=timeout)
     df = _table_to_dataframe(table_data)
+    df = df.loc[:, df.apply(lambda col: col.astype(str).str.strip().ne("").any())]
+
+    dump_headers = _headers_from_dump("button24")
+    target_sequence = [
+        "BHA Depth (ft)",
+        "Pipe Fluid Density (lb/gal)",
+        "Force on End - RIH (lbf)",
+        "Lockup Depth (ft)",
+        "Min Surface Wt - RIH (lbf)",
+        "Max Surface Wt - POOH (lbf)",
+        "Max Pipe Stress - POOH (% of YS)",
+    ]
+
+    if dump_headers and len(df.columns) == len(target_sequence) + 1:
+        resolved_headers: list[str] = []
+        for target in target_sequence:
+            match = next((name for name in dump_headers if name.startswith(target.split(" (")[0])), target)
+            resolved_headers.append(match)
+        df.columns = ["#"] + resolved_headers
+    elif dump_headers:
+        df.columns = dump_headers[: len(df.columns)]
+
+    if "#" in df.columns:
+        df = df.drop(columns="#")
+    df = _coerce_numeric_columns(df)
     print(df)
     return df
 
@@ -143,9 +212,9 @@ if __name__ == "__main__":
     # Parameter_Matrix_FOE_Row0()
     # Value_List_FOE_1()
     # Value_List_Item0()
-    Sensitivity_Analysis_Calculate()
+    # Sensitivity_Analysis_Calculate()
     # Parameters_Minimum_Surface_Weight_During_RIH()
     Sensitivity_Table()
 
 
-   # list_buttons
+# list_buttons

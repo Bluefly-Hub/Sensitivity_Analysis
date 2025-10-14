@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Text.Json;
 using System.Windows.Automation;
@@ -549,7 +550,7 @@ namespace Cerberus.ButtonAutomation
         {
             ButtonDescriptor descriptor;
             AutomationElement element = ResolveElement(key, out descriptor);
-            return ExtractTable(element);
+            return ExtractTable(element, descriptor);
         }
 
         public void PrintPatternDiagnostics(string key)
@@ -756,19 +757,19 @@ namespace Cerberus.ButtonAutomation
             return null;
         }
 
-        private TableExtractionResult ExtractTable(AutomationElement tableElement)
+        private TableExtractionResult ExtractTable(AutomationElement tableElement, ButtonDescriptor descriptor)
         {
             if (tableElement is null)
             {
                 throw new ArgumentNullException(nameof(tableElement));
             }
 
-            if (TryExtractUsingGrid(tableElement, out TableExtractionResult viaGrid))
+            if (TryExtractUsingGrid(tableElement, descriptor, out TableExtractionResult viaGrid))
             {
                 return viaGrid;
             }
 
-            List<string> headers = CollectColumnHeaders(tableElement, columnCount: 0);
+            List<string> headers = CollectColumnHeaders(tableElement, columnCount: 0, descriptor);
             List<List<string>> rows = ExtractRowsFromDescendants(tableElement, headers.Count);
 
             int columnCount = Math.Max(rows.Count > 0 ? rows.Max(row => row.Count) : 0, headers.Count);
@@ -806,7 +807,7 @@ namespace Cerberus.ButtonAutomation
             return new TableExtractionResult(headers, rows);
         }
 
-        private bool TryExtractUsingGrid(AutomationElement tableElement, out TableExtractionResult result)
+        private bool TryExtractUsingGrid(AutomationElement tableElement, ButtonDescriptor descriptor, out TableExtractionResult result)
         {
             result = default!;
             if (!tableElement.TryGetCurrentPattern(GridPattern.Pattern, out object? gridObj) || gridObj is not GridPattern gridPattern)
@@ -816,7 +817,7 @@ namespace Cerberus.ButtonAutomation
 
             int rowCount = gridPattern.Current.RowCount;
             int columnCount = gridPattern.Current.ColumnCount;
-            List<string> headers = CollectColumnHeaders(tableElement, columnCount);
+            List<string> headers = CollectColumnHeaders(tableElement, columnCount, descriptor);
 
             var rows = new List<List<string>>(rowCount);
             for (int rowIndex = 0; rowIndex < rowCount; rowIndex++)
@@ -833,7 +834,7 @@ namespace Cerberus.ButtonAutomation
             return true;
         }
 
-        private List<string> CollectColumnHeaders(AutomationElement tableElement, int columnCount)
+        private List<string> CollectColumnHeaders(AutomationElement tableElement, int columnCount, ButtonDescriptor descriptor)
         {
             var headers = new List<string>();
 
@@ -873,6 +874,11 @@ namespace Cerberus.ButtonAutomation
                 }
             }
 
+            if (headers.Count == 0)
+            {
+                headers = ParseHeadersFromDump(descriptor.RawDump);
+            }
+
             if (columnCount <= 0)
             {
                 return headers;
@@ -888,6 +894,58 @@ namespace Cerberus.ButtonAutomation
             else if (headers.Count > columnCount)
             {
                 headers = headers.Take(columnCount).ToList();
+            }
+
+            return headers;
+        }
+
+        private static List<string> ParseHeadersFromDump(IReadOnlyList<string> rawLines)
+        {
+            var blockBuilder = new StringBuilder();
+            bool inHeaders = false;
+
+            foreach (string line in rawLines)
+            {
+                string trimmed = line.Trim();
+
+                if (!inHeaders)
+                {
+                    if (trimmed.StartsWith("Table.ColumnHeaders", StringComparison.OrdinalIgnoreCase))
+                    {
+                        inHeaders = true;
+                        blockBuilder.AppendLine(trimmed);
+                    }
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(trimmed) ||
+                    trimmed.StartsWith("Table.RowHeaders", StringComparison.OrdinalIgnoreCase) ||
+                    trimmed.StartsWith("[", StringComparison.Ordinal))
+                {
+                    break;
+                }
+
+                if (!trimmed.Contains('"'))
+                {
+                    continue;
+                }
+
+                blockBuilder.AppendLine(trimmed);
+            }
+
+            if (blockBuilder.Length == 0)
+            {
+                return new List<string>();
+            }
+
+            var headers = new List<string>();
+            foreach (Match match in Regex.Matches(blockBuilder.ToString(), "\"([^\"]+)\""))
+            {
+                string value = NormalizeWhitespace(match.Groups[1].Value);
+                if (!string.IsNullOrEmpty(value))
+                {
+                    headers.Add(value);
+                }
             }
 
             return headers;
