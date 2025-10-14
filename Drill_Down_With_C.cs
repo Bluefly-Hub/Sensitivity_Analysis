@@ -539,6 +539,19 @@ namespace Cerberus.ButtonAutomation
 
             if (TrySetValue(element, value))
             {
+                if (element.TryGetCurrentPattern(TogglePattern.Pattern, out object toggleObj))
+                {
+                    var togglePattern = (TogglePattern)toggleObj;
+                    ToggleState state = togglePattern.Current.ToggleState;
+                    string stateText = state switch
+                    {
+                        ToggleState.On => "On (1)",
+                        ToggleState.Off => "Off (0)",
+                        _ => state.ToString()
+                    };
+                    Console.WriteLine($"Toggle.ToggleState:\t{stateText}");
+                }
+
                 Console.WriteLine($"Set value '{value}' on '{descriptor.Key}'.");
                 return;
             }
@@ -1628,6 +1641,39 @@ namespace Cerberus.ButtonAutomation
             return segment;
         }
 
+        private static bool TryParseToggleValue(string value, out bool result)
+        {
+            result = false;
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            string trimmed = value.Trim();
+            if (bool.TryParse(trimmed, out result))
+            {
+                return true;
+            }
+
+            if (string.Equals(trimmed, "1", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(trimmed, "yes", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(trimmed, "on", StringComparison.OrdinalIgnoreCase))
+            {
+                result = true;
+                return true;
+            }
+
+            if (string.Equals(trimmed, "0", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(trimmed, "no", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(trimmed, "off", StringComparison.OrdinalIgnoreCase))
+            {
+                result = false;
+                return true;
+            }
+
+            return false;
+        }
+
         private static bool TryExecute(AutomationElement element, ButtonAction action)
         {
             try
@@ -1764,20 +1810,47 @@ namespace Cerberus.ButtonAutomation
         {
             try
             {
-                if (!element.TryGetCurrentPattern(ValuePattern.Pattern, out object patternObj))
+                if (element.TryGetCurrentPattern(ValuePattern.Pattern, out object patternObj))
                 {
-                    return false;
+                    var valuePattern = (ValuePattern)patternObj;
+                    if (valuePattern.Current.IsReadOnly)
+                    {
+                        return false;
+                    }
+
+                    FocusElementIfPossible(element);
+                    valuePattern.SetValue(value);
+                    return true;
                 }
 
-                var valuePattern = (ValuePattern)patternObj;
-                if (valuePattern.Current.IsReadOnly)
+                if (element.TryGetCurrentPattern(TogglePattern.Pattern, out object toggleObj))
                 {
-                    return false;
+                    if (!TryParseToggleValue(value, out bool desiredState))
+                    {
+                        return false;
+                    }
+
+                    var togglePattern = (TogglePattern)toggleObj;
+                    ToggleState target = desiredState ? ToggleState.On : ToggleState.Off;
+
+                    FocusElementIfPossible(element);
+
+                    for (int attempt = 0; attempt < 4; attempt++)
+                    {
+                        ToggleState current = togglePattern.Current.ToggleState;
+                        if (current == target)
+                        {
+                            return true;
+                        }
+
+                        togglePattern.Toggle();
+                        Thread.Sleep(50);
+                    }
+
+                    return togglePattern.Current.ToggleState == target;
                 }
 
-                FocusElementIfPossible(element);
-                valuePattern.SetValue(value);
-                return true;
+                return false;
             }
             catch (InvalidOperationException)
             {

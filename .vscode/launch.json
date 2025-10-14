@@ -5,6 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         
+        
         {
             "name": "C#: Drill_Down_With_C",
             "type": "dotnet",
@@ -13,10 +14,10 @@
             "launchConfigurationId": "TargetFramework=;Drill_Down_With_C"
         },
         {
-            "name": "Python: Button_Repository.py",
+            "name": "Python: Cerberus Main",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/Button_Repository.py",
+            "program": "${workspaceFolder}/cerberus_sensitivity/main.py",
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "justMyCode": true,

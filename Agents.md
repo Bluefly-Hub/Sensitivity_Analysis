@@ -28,6 +28,7 @@ This matches your working Python code: `Liner_Hanger_Flow.py` (engine) + `Wellpl
 * Caches references to key controls (edits, radios, checkboxes, tabs).
 * Provides safe getters with lazy refresh.
 * Expands/scrolls into view as needed.
+* Only button_repository.y can be used for the API.
 
 ### C. UI Trigger Agent
 

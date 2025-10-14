@@ -1,17 +1,57 @@
 from __future__ import annotations
 
+import subprocess
 import threading
+import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Sequence
+from typing import Any, Callable, Dict, Iterable, List, Sequence
 
-from .clipboard import parse_tabulated_tsv
+import pandas as pd
+
+from .button_repository import (
+    Edit_cmdAdd,
+    Edit_cmdDelete,
+    Edit_cmdOK,
+    File_OpenTemplate,
+    File_OpenTemplate_auto,
+    Parameter_Matrix_BHA_Depth_Row0,
+    Parameter_Matrix_FOE_POOH_Row0,
+    Parameter_Matrix_FOE_RIH_Row0,
+    Parameter_Matrix_PFD_Row0,
+    Parameter_Matrix_Wizard,
+    Parameter_Value_Editor_Set_Value,
+    Parameters_Maximum_Surface_Weight_During_POOH,
+    Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS,
+    Parameters_Minimum_Surface_Weight_During_RIH,
+    Parameters_POOH,
+    Parameters_Pipe_fluid_density,
+    Parameters_RIH,
+    Sensitivity_Analysis_Calculate,
+    Sensitivity_Setting_Outputs,
+    Sensitivity_Table,
+    Value_List_Item0,
+    button_Sensitivity_Analysis,
+    button_exit_wizard,
+)
 from .inputs import SensitivityInputRow, SensitivityInputs
 from .progress import ProgressReporter
 from .run_plan import RunPlan, chunk_depths
-from .ui_trigger import UITriggerAgent
 
 
 MAX_ITERATIONS_PER_RUN = 200
+RIH_MODE = "RIH"
+POOH_MODE = "POOH"
+
+_TEMPLATE_SELECTORS: Dict[str, Callable[..., object]] = {
+    "auto": File_OpenTemplate_auto,
+}
+
+_PARAMETER_ROW_SELECTORS: Dict[str, Callable[..., object]] = {
+    "BHA Depth": Parameter_Matrix_BHA_Depth_Row0,
+    "Pipe Fluid Density": Parameter_Matrix_PFD_Row0,
+    "Force on End - RIH": Parameter_Matrix_FOE_RIH_Row0,
+    "Force on End - POOH": Parameter_Matrix_FOE_POOH_Row0,
+}
 
 
 @dataclass
@@ -21,8 +61,8 @@ class ScanResult:
 
 
 class CerberusOrchestrator:
-    def __init__(self, trigger: UITriggerAgent) -> None:
-        self.trigger = trigger
+    def __init__(self) -> None:
+        pass
 
     def run_scan(
         self,
@@ -31,24 +71,28 @@ class CerberusOrchestrator:
         start_index: int,
         cancel_event: threading.Event,
         template_name: str = "auto",
-    ) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    ) -> tuple[List[Dict[str, Any]], Dict[str, pd.DataFrame]]:
         rows = [self._coerce_row(item) for item in data_list]
         inputs = SensitivityInputs.from_rows(rows)
         run_plan = self._build_run_plan(inputs)
         if not run_plan:
-            raise ValueError("No valid Cerberus sensitivity combinations were detected. Check that density, depth, and FOE columns contain numeric values.")
+            raise ValueError(
+                "No valid Cerberus sensitivity combinations were detected. Check that density, depth, and FOE columns contain numeric values."
+            )
         total_rows = run_plan[-1].end_offset
 
         if start_index >= total_rows:
             progress.init(total_rows, template=template_name)
-            progress.done([row.__dict__ for row in rows], [])
-            return [row.__dict__ for row in rows], []
+            empty_outputs = {RIH_MODE: pd.DataFrame(), POOH_MODE: pd.DataFrame()}
+            progress.done([row.__dict__ for row in rows], empty_outputs)
+            return [row.__dict__ for row in rows], empty_outputs
 
         progress.init(total_rows, template=template_name)
-        self.trigger.open_sensitivity_analysis()
-        self.trigger.load_template(template_name)
+        _open_sensitivity_analysis()
+        _load_template(template_name)
 
-        aggregated_results: List[Dict[str, Any]] = []
+        rih_frames: List[pd.DataFrame] = []
+        pooh_frames: List[pd.DataFrame] = []
 
         for plan in run_plan:
             if cancel_event.is_set():
@@ -56,35 +100,47 @@ class CerberusOrchestrator:
             if start_index >= plan.end_offset:
                 continue
 
-            self.trigger.configure_outputs_for_mode(plan.mode)
-            self.trigger.configure_for_mode(plan.mode)
+            _configure_parameters_for_mode(plan.mode)
+            _configure_outputs_for_mode(plan.mode)
 
-            self.trigger.open_parameter_matrix()
+            _open_parameter_matrix()
+            # BHA depth must be loaded first so subsequent parameters reference the correct slice
+            _update_parameter_values("BHA Depth", plan.depth_values)
             if plan.include_pipe_density:
-                self.trigger.update_parameter_values("Pipe Fluid Density", inputs.pipe_fluid_densities)
+                _update_parameter_values("Pipe Fluid Density", inputs.pipe_fluid_densities)
             if plan.include_force_on_end:
                 foe_values = inputs.stretch_foe_rih if plan.mode == "RIH" else inputs.stretch_foe_pooh
                 caption = "Force on End - RIH" if plan.mode == "RIH" else "Force on End - POOH"
-                self.trigger.update_parameter_values(caption, foe_values)
-            self.trigger.update_parameter_values("BHA Depth", plan.depth_values)
-            self.trigger.close_parameter_matrix()
+                _update_parameter_values(caption, foe_values)
+            _close_parameter_matrix()
 
-            raw_text = self.trigger.recalc_and_copy_results()
-            parsed_rows = parse_tabulated_tsv(raw_text)
-
-            for idx, row in enumerate(parsed_rows):
+            table_df = _recalc_and_collect_table()
+            table_rows = table_df.to_dict(orient="records")
+            new_rows_for_mode: List[Dict[str, Any]] = []
+            for idx, row in enumerate(table_rows):
                 global_index = plan.offset + idx
                 if global_index < start_index:
                     continue
                 if cancel_event.is_set():
                     break
-                aggregated_results.append(row)
-                progress.row(global_index, row)
+                row_payload = {"mode": plan.mode, **row}
+                progress.row(global_index, row_payload)
+                stored_row = {"index": global_index, **row}
+                new_rows_for_mode.append(stored_row)
             if cancel_event.is_set():
                 break
+            if new_rows_for_mode:
+                frame = pd.DataFrame(new_rows_for_mode)
+                if plan.mode == RIH_MODE:
+                    rih_frames.append(frame)
+                else:
+                    pooh_frames.append(frame)
 
-        progress.done([row.__dict__ for row in rows], aggregated_results)
-        return [row.__dict__ for row in rows], aggregated_results
+        rih_df = pd.concat(rih_frames, ignore_index=True) if rih_frames else pd.DataFrame()
+        pooh_df = pd.concat(pooh_frames, ignore_index=True) if pooh_frames else pd.DataFrame()
+        output_frames = {RIH_MODE: rih_df, POOH_MODE: pooh_df}
+        progress.done([row.__dict__ for row in rows], output_frames)
+        return [row.__dict__ for row in rows], output_frames
 
     def _coerce_row(self, item: Dict[str, Any] | SensitivityInputRow) -> SensitivityInputRow:
         if isinstance(item, SensitivityInputRow):
@@ -154,6 +210,128 @@ class CerberusOrchestrator:
         while combos_per_depth * chunk > MAX_ITERATIONS_PER_RUN and chunk > 1:
             chunk -= 1
         return max(1, chunk)
+
+
+def _open_sensitivity_analysis() -> None:
+    button_Sensitivity_Analysis()
+    time.sleep(0.3)
+
+
+def _load_template(template_name: str, timeout: float = 10.0) -> None:
+    key = template_name.strip().lower()
+    selector = _TEMPLATE_SELECTORS.get(key)
+    if selector is None:
+        raise ValueError(f"Unsupported template '{template_name}'.")
+
+    File_OpenTemplate(timeout=timeout)
+    time.sleep(0.2)
+    selector(timeout=timeout)
+    time.sleep(0.5)
+
+
+def _configure_parameters_for_mode(mode: str) -> None:
+    normalized = mode.strip().upper()
+    if normalized not in {RIH_MODE, POOH_MODE}:
+        raise ValueError(f"Unsupported mode '{mode}'.")
+
+    Parameters_Pipe_fluid_density(checked=True)
+    if normalized == RIH_MODE:
+        Parameters_RIH(checked=True)
+        Parameters_POOH(checked=False)
+    else:
+        Parameters_RIH(checked=False)
+        Parameters_POOH(checked=True)
+    time.sleep(0.2)
+
+
+def _configure_outputs_for_mode(mode: str) -> None:
+    normalized = mode.strip().upper()
+    if normalized not in {RIH_MODE, POOH_MODE}:
+        raise ValueError(f"Unsupported mode '{mode}'.")
+
+    Sensitivity_Setting_Outputs()
+    time.sleep(0.1)
+
+    if normalized == RIH_MODE:
+        Parameters_Minimum_Surface_Weight_During_RIH(checked=True)
+        Parameters_RIH(checked=True)
+        Parameters_Pipe_fluid_density(checked=True)
+        Parameters_Maximum_Surface_Weight_During_POOH(checked=False)
+        Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS(checked=False)
+    else:
+        Parameters_Minimum_Surface_Weight_During_RIH(checked=False)
+        Parameters_Maximum_Surface_Weight_During_POOH(checked=True)
+        Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS(checked=True)
+    time.sleep(0.2)
+
+
+def _open_parameter_matrix() -> None:
+    Parameter_Matrix_Wizard()
+    time.sleep(0.5)
+
+
+def _close_parameter_matrix() -> None:
+    button_exit_wizard()
+    time.sleep(0.3)
+
+
+def _update_parameter_values(
+    parameter_caption: str,
+    values: Iterable[float],
+    ensure_clear: bool = True,
+) -> None:
+    sequence = [value for value in values if value is not None]
+    if not sequence:
+        return
+
+    selector = _resolve_parameter_selector(parameter_caption)
+    selector()
+    time.sleep(0.2)
+
+    if ensure_clear:
+        _clear_value_list()
+
+    for value in sequence:
+        Parameter_Value_Editor_Set_Value(str(value))
+        time.sleep(0.05)
+        Edit_cmdAdd()
+        time.sleep(0.05)
+
+    Edit_cmdOK()
+    time.sleep(0.2)
+
+
+def _resolve_parameter_selector(caption: str):
+    normalized = caption.strip()
+    selector = _PARAMETER_ROW_SELECTORS.get(normalized)
+    if selector is None:
+        raise ValueError(f"No parameter matrix selector defined for '{caption}'.")
+    return selector
+
+
+def _clear_value_list(max_attempts: int = 1) -> None:
+    attempts = 0
+    while attempts < max_attempts:
+        attempts += 1
+        try:
+            Value_List_Item0()
+            time.sleep(0.05)
+        except subprocess.CalledProcessError:
+            break
+        try:
+            Edit_cmdDelete()
+            time.sleep(0.05)
+        except subprocess.CalledProcessError:
+            break
+
+
+def _recalc_and_collect_table(timeout: float = 60.0) -> pd.DataFrame:
+    Sensitivity_Analysis_Calculate(timeout=timeout)
+    time.sleep(1.0)
+    table = Sensitivity_Table(timeout=timeout)
+    if table is None or table.empty:
+        raise RuntimeError("Sensitivity table did not return any data.")
+    return table
 
 
 
