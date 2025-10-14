@@ -60,10 +60,38 @@ def _headers_from_dump(button_key: str, dump_path: Path | None = None) -> list[s
     header_block_match = re.search(
         r"Table\.ColumnHeaders:(.*?)(?:\n[A-Z][^\n]*:|\Z)", match.group(1), re.DOTALL
     )
-    if not header_block_match:
-        return []
+    raw_headers: list[str] = []
+    if header_block_match:
+        raw_headers = re.findall(r'"([^"]+)"', header_block_match.group(1))
 
-    raw_headers = re.findall(r'"([^"]+)"', header_block_match.group(1))
+    if not raw_headers:
+        children_match = re.search(
+            r"Children:(.*?)(?:\n[A-Z][^\n]*:|\Z)", match.group(1), re.DOTALL
+        )
+        if children_match:
+            pending: list[str] = []
+            for line in children_match.group(1).splitlines():
+                stripped = line.strip()
+                if not stripped:
+                    continue
+
+                if stripped.endswith('" header'):
+                    core = stripped[:-8].strip('"')
+                    if pending:
+                        pending.append(core)
+                        combined = " ".join(part for part in pending if part)
+                        raw_headers.append(combined)
+                        pending = []
+                    else:
+                        raw_headers.append(core)
+                else:
+                    pending.append(stripped.strip('"'))
+
+            if pending:
+                combined = " ".join(part for part in pending if part)
+                if combined:
+                    raw_headers.append(combined)
+
     return [" ".join(value.split()) for value in raw_headers if value.strip()]
 
 # def Sensitivity_Analysis():
@@ -163,35 +191,33 @@ def Sensitivity_Table(timeout: float = 90.0):
     """Sensitivity Table (button24)."""
     table_data = collect_table("button24", timeout=timeout)
     df = _table_to_dataframe(table_data)
+    if df.columns.tolist() and df.columns[0] == "#":
+        df = df.drop(columns="#")
+
     df = df.loc[:, df.apply(lambda col: col.astype(str).str.strip().ne("").any())]
 
-    dump_headers = _headers_from_dump("button24")
-    target_sequence = [
-        "BHA Depth (ft)",
-        "Pipe Fluid Density (lb/gal)",
-        "Force on End - RIH (lbf)",
-        "Lockup Depth (ft)",
-        "Min Surface Wt - RIH (lbf)",
-        "Max Surface Wt - POOH (lbf)",
-        "Max Pipe Stress - POOH (% of YS)",
-    ]
+    dump_headers = _headers_from_dump("button25") or _headers_from_dump("button24")
+    if dump_headers:
+        cleaned_headers = [header for header in dump_headers if header != "#"]
+        target_headers = cleaned_headers[: len(df.columns)]
+        if len(target_headers) == len(df.columns):
+            rename_map = dict(zip(df.columns, target_headers))
+            df = df.rename(columns=rename_map)
 
-    if dump_headers and len(df.columns) == len(target_sequence) + 1:
-        resolved_headers: list[str] = []
-        for target in target_sequence:
-            match = next((name for name in dump_headers if name.startswith(target.split(" (")[0])), target)
-            resolved_headers.append(match)
-        df.columns = ["#"] + resolved_headers
-    elif dump_headers:
-        df.columns = dump_headers[: len(df.columns)]
-
-    if "#" in df.columns:
+    if df.columns.tolist() and df.columns[0] == "#":
         df = df.drop(columns="#")
+
+    df = df.loc[:, df.apply(lambda col: col.astype(str).str.strip().ne("").any())]
+
     df = _coerce_numeric_columns(df)
     print(df)
     return df
 
-if __name__ == "__main__":
+def Parameters_RIH(timeout: float = 90.0):
+    """Toggle the RIH parameter checkbox (button26)."""
+    return invoke_button("button26", timeout=timeout)
+
+# if __name__ == "__main__":
     # button_Sensitivity_Analysis()
     # File_OpenTemplate()
     # File_OpenTemplate_auto()
@@ -214,7 +240,8 @@ if __name__ == "__main__":
     # Value_List_Item0()
     # Sensitivity_Analysis_Calculate()
     # Parameters_Minimum_Surface_Weight_During_RIH()
-    Sensitivity_Table()
+    # Sensitivity_Table()
+    # Parameters_RIH()
 
 
 # list_buttons

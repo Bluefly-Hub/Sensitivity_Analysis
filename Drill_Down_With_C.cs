@@ -836,7 +836,13 @@ namespace Cerberus.ButtonAutomation
 
         private List<string> CollectColumnHeaders(AutomationElement tableElement, int columnCount, ButtonDescriptor descriptor)
         {
-            var headers = new List<string>();
+            List<string> headers = ExtractHeadersFromTopRow(tableElement);
+            if (headers.Count > 0)
+            {
+                return headers;
+            }
+
+            headers = new List<string>();
 
             try
             {
@@ -872,6 +878,11 @@ namespace Cerberus.ButtonAutomation
                 {
                     // Ignore find failures; we'll fall back to synthetic header names.
                 }
+            }
+
+            if (headers.Count == 0)
+            {
+                headers = ExtractHeadersFromTopRow(tableElement);
             }
 
             if (headers.Count == 0)
@@ -949,6 +960,79 @@ namespace Cerberus.ButtonAutomation
             }
 
             return headers;
+        }
+
+        private static List<string> ExtractHeadersFromTopRow(AutomationElement tableElement)
+        {
+            var headers = new List<string>();
+            try
+            {
+                AutomationElement? topRow = FindFirstChild(tableElement, static element =>
+                {
+                    string name = element.Current.Name ?? string.Empty;
+                    return string.Equals(name.Trim(), "Top Row", StringComparison.OrdinalIgnoreCase);
+                });
+
+                if (topRow is null)
+                {
+                    return headers;
+                }
+
+                AutomationElement? current = TreeWalker.RawViewWalker.GetFirstChild(topRow);
+                while (current is not null)
+                {
+                    try
+                    {
+                        System.Windows.Rect rect = current.Current.BoundingRectangle;
+                        if (rect.Width <= 1 || rect.Height <= 1)
+                        {
+                            current = TreeWalker.RawViewWalker.GetNextSibling(current);
+                            continue;
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore bounding rectangle failures; treat as visible header.
+                    }
+
+                    string text = NormalizeWhitespace(current.Current.Name ?? string.Empty);
+                    if (!string.IsNullOrWhiteSpace(text))
+                    {
+                        headers.Add(text);
+                    }
+
+                    current = TreeWalker.RawViewWalker.GetNextSibling(current);
+                }
+            }
+            catch
+            {
+                // Ignore failures; fallback logic will handle.
+            }
+
+            return headers;
+        }
+
+        private static AutomationElement? FindFirstChild(AutomationElement root, Func<AutomationElement, bool> predicate)
+        {
+            try
+            {
+                AutomationElement? child = TreeWalker.RawViewWalker.GetFirstChild(root);
+                while (child is not null)
+                {
+                    if (predicate(child))
+                    {
+                        return child;
+                    }
+
+                    child = TreeWalker.RawViewWalker.GetNextSibling(child);
+                }
+            }
+            catch
+            {
+                // Ignore errors; return null.
+            }
+
+            return null;
         }
 
         private List<List<string>> ExtractRowsFromDescendants(AutomationElement tableElement, int expectedColumns)

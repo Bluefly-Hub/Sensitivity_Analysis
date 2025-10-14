@@ -1748,103 +1748,38 @@ Ancestors:	"Data" pane
 	"Orpheus - <Abbey A-02 (local)>     " window
 	"Desktop 2" pane
 	[ No Parent ]
-How found:	Grid.GetItem...
-Name:	"DataGridView"
-ControlType:	UIA_TableControlTypeId (0xC374)
-LocalizedControlType:	"table"
-BoundingRectangle:	{l:1012 t:276 r:1503 b:883}
+
+
+[button25]
+How found:	Selected from tree...
+Name:	"Top Row"
+BoundingRectangle:	{l:2754 t:141 r:3335 b:199}
 IsEnabled:	true
 IsOffscreen:	false
-IsKeyboardFocusable:	true
+IsKeyboardFocusable:	false
 HasKeyboardFocus:	false
 AccessKey:	""
 ProcessId:	34500
-RuntimeId:	[2A.D11D8]
-AutomationId:	"grdSensitivityData"
-FrameworkId:	"WinForm"
-ClassName:	"WindowsForms10.Window.8.app.0.141b42a_r7_ad1"
-NativeWindowHandle:	0xD11D8
-ProviderDescription:	"[pid:33952,providerId:0xD11D8 Main:Nested [pid:34500,providerId:0xD11D8 Main(parent link):Microsoft: MSAA Proxy (unmanaged:UIAutomationCore.dll)]; Hwnd(parent link):Microsoft: HWND Proxy (unmanaged:uiautomationcore.dll)]"
+ProviderDescription:	"[pid:34500,providerId:0x0 Main(parent link):Microsoft: MSAA Proxy (unmanaged:UIAutomationCore.dll)]"
 IsPassword:	false
 HelpText:	""
 IsDialog:	false
-Grid.ColumnCount:	41
-Grid.RowCount:	2
 LegacyIAccessible.ChildId:	0
 LegacyIAccessible.DefaultAction:	""
 LegacyIAccessible.Description:	""
 LegacyIAccessible.Help:	""
 LegacyIAccessible.KeyboardShortcut:	""
-LegacyIAccessible.Name:	"DataGridView"
-LegacyIAccessible.Role:	table (0x18)
-LegacyIAccessible.State:	focusable (0x100000)
-LegacyIAccessible.Value:	""
-Table.ColumnHeaders:	"#" header
-	"BHA Depth
-(ft)" header
-	"JP String" header
-	"Pipe OD
-(in)" header
-	"Pipe ID
-(in)" header
-	"Pipe Yield Strength
-(kpsi)" header
-	"BHA" header
-	"Agitator Ratio
-(lbf/(BPM))" header
-	"Well" header
-	"Friction Factor" header
-	"Well Fluid" header
-	"Well Fluid Density
-(lb/gal)" header
-	"Well Liquid Flow Rate
-(BPM)" header
-	"Well Gas Flow Rate
-(scfm)" header
-	"Wellhead Pressure
-(psi)" header
-	"Pipe Fluid" header
-	"Pipe Fluid Density
-(lb/gal)" header
-	"Pipe Liquid Flow Rate
-(BPM)" header
-	"Pipe Gas Flow Rate
-(scfm)" header
-	"Force on End - RIH
-(lbf)" header
-	"Force on End - POOH
-(lbf)" header
-	"Tractor Force - RIH
-(lbf)" header
-	"Tractor Force - POOH
-(lbf)" header
-	"Pipe Speed
-(ft/min)" header
-	"Torque on End
-(ft·lbf)" header
-	"Surface Rotation
-(rpm)" header
-	"Lockup Depth
-(ft)" header
-	"Min Surface Wt - RIH
-(lbf)" header
-	"Min Pipe Tension - RIH
-(lbf)" header
-	"Max Surface Wt - POOH
-(lbf)" header
-	"Max Pipe Tension - POOH
-(lbf)" header
-	"Max Pipe Stress - POOH
-(% of YS)" head
-Table.RowHeaders:	
-Table.RowOrColumnMajor:	0
+LegacyIAccessible.Name:	"Top Row"
+LegacyIAccessible.Role:	row (0x1C)
+LegacyIAccessible.State:	normal (0x0)
+LegacyIAccessible.Value:	"Top Row"
 IsAnnotationPatternAvailable:	false
 IsDragPatternAvailable:	false
 IsDockPatternAvailable:	false
 IsDropTargetPatternAvailable:	false
 IsExpandCollapsePatternAvailable:	false
 IsGridItemPatternAvailable:	false
-IsGridPatternAvailable:	true
+IsGridPatternAvailable:	false
 IsInvokePatternAvailable:	false
 IsItemContainerPatternAvailable:	false
 IsLegacyIAccessiblePatternAvailable:	true
@@ -1860,7 +1795,7 @@ IsSpreadsheetPatternAvailable:	false
 IsStylesPatternAvailable:	false
 IsSynchronizedInputPatternAvailable:	false
 IsTableItemPatternAvailable:	false
-IsTablePatternAvailable:	true
+IsTablePatternAvailable:	false
 IsTextChildPatternAvailable:	false
 IsTextEditPatternAvailable:	false
 IsTextPatternAvailable:	false
@@ -1873,25 +1808,114 @@ IsVirtualizedItemPatternAvailable:	false
 IsWindowPatternAvailable:	false
 IsCustomNavigationPatternAvailable:	false
 IsSelectionPattern2Available:	false
-FirstChild:	"Horizontal Scroll Bar" scroll bar
-LastChild:	"Row 1" 
-Next:	"* Indication of invalid hydraulics calculation (negative pressure calculated due to high frictional loss)." pane
+FirstChild:	"#" header
+LastChild:	"Max Pipe Stress - POOH
+(% of YS)" header
+Next:	"Row 0" 
 Previous:	[null]
 Other Props:	Object has no additional properties
-Children:	"Horizontal Scroll Bar" scroll bar
-	"Top Row" 
-	"Row 0" 
-	"Row 1" 
-Ancestors:	
+Children:	"#" header
+	"BHA Depth
+(ft)" header
+	"Pipe Fluid Density
+(lb/gal)" header
+	"Force on End - RIH
+(lbf)" header
+	"Lockup Depth
+(ft)" header
+	"Min Surface Wt - RIH
+(lbf)" header
+	"Max Surface Wt - POOH
+(lbf)" header
+	"Max Pipe Stress - POOH
+(% of YS)" header
+Ancestors:	"DataGridView" table
 	"Data" pane
 	"auto" tab
+	"" pane
+	"" pane
 	" Sensitivity Analysis Wizard - Abbey A-02" window
 	"Orpheus - <Abbey A-02 (local)>     " window
-
-
-[button25]
+	"Desktop 2" pane
+	[ No Parent ]
 
 [button26]
+How found:	Selected from tree...
+Name:	"RIH"
+ControlType:	UIA_CheckBoxControlTypeId (0xC352)
+LocalizedControlType:	"check box"
+BoundingRectangle:	{l:2593 t:594 r:2641 b:612}
+IsEnabled:	true
+IsOffscreen:	false
+IsKeyboardFocusable:	true
+HasKeyboardFocus:	false
+AccessKey:	""
+ProcessId:	34500
+RuntimeId:	[2A.D10FC]
+AutomationId:	"chkFOE"
+FrameworkId:	"WinForm"
+ClassName:	"WindowsForms10.BUTTON.app.0.141b42a_r7_ad1"
+NativeWindowHandle:	0xD10FC
+ProviderDescription:	"[pid:33952,providerId:0xD10FC Main:Nested [pid:34500,providerId:0xD10FC Main(parent link):Microsoft: MSAA Proxy (unmanaged:UIAutomationCore.dll)]; Hwnd(parent link):Microsoft: HWND Proxy (unmanaged:uiautomationcore.dll)]"
+IsPassword:	false
+HelpText:	""
+IsDialog:	false
+LegacyIAccessible.ChildId:	0
+LegacyIAccessible.DefaultAction:	"Uncheck"
+LegacyIAccessible.Description:	""
+LegacyIAccessible.Help:	""
+LegacyIAccessible.KeyboardShortcut:	""
+LegacyIAccessible.Name:	"RIH"
+LegacyIAccessible.Role:	check box (0x2C)
+LegacyIAccessible.State:	checked,focusable (0x100010)
+LegacyIAccessible.Value:	""
+Toggle.ToggleState:	On (1)
+IsAnnotationPatternAvailable:	false
+IsDragPatternAvailable:	false
+IsDockPatternAvailable:	false
+IsDropTargetPatternAvailable:	false
+IsExpandCollapsePatternAvailable:	false
+IsGridItemPatternAvailable:	false
+IsGridPatternAvailable:	false
+IsInvokePatternAvailable:	true
+IsItemContainerPatternAvailable:	false
+IsLegacyIAccessiblePatternAvailable:	true
+IsMultipleViewPatternAvailable:	false
+IsObjectModelPatternAvailable:	false
+IsRangeValuePatternAvailable:	false
+IsScrollItemPatternAvailable:	false
+IsScrollPatternAvailable:	false
+IsSelectionItemPatternAvailable:	false
+IsSelectionPatternAvailable:	false
+IsSpreadsheetItemPatternAvailable:	false
+IsSpreadsheetPatternAvailable:	false
+IsStylesPatternAvailable:	false
+IsSynchronizedInputPatternAvailable:	false
+IsTableItemPatternAvailable:	false
+IsTablePatternAvailable:	false
+IsTextChildPatternAvailable:	false
+IsTextEditPatternAvailable:	false
+IsTextPatternAvailable:	false
+IsTextPattern2Available:	false
+IsTogglePatternAvailable:	true
+IsTransformPatternAvailable:	false
+IsTransform2PatternAvailable:	false
+IsValuePatternAvailable:	false
+IsVirtualizedItemPatternAvailable:	false
+IsWindowPatternAvailable:	false
+IsCustomNavigationPatternAvailable:	false
+IsSelectionPattern2Available:	false
+FirstChild:	[null]
+LastChild:	[null]
+Next:	[null]
+Previous:	"POOH" check box
+Other Props:	Object has no additional properties
+Children:	Container has no children
+Ancestors:	
+	"Parameters" pane
+	"Sensitivity Setting" tab
+	" Sensitivity Analysis Wizard - Abbey A-02" window
+	"Orpheus - <Abbey A-02 (local)>     " window
 
 [button27]
 
