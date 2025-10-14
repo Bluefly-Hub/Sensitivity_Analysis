@@ -1,6 +1,26 @@
-import subprocess, sys
-from pathlib import Path
-from cerberus_sensitivity.automation.button_bridge_CSharp_to_py import invoke_button, list_buttons, set_button_value
+import pandas as pd
+from typing import Any, Mapping
+
+from cerberus_sensitivity.automation.button_bridge_CSharp_to_py import (
+    collect_table,
+    invoke_button,
+    list_buttons,
+    set_button_value,
+)
+
+
+def _table_to_dataframe(table_payload: Mapping[str, Any]):
+    rows = list(table_payload.get("Rows") or [])
+    headers = list(table_payload.get("Headers") or [])
+
+    if rows and headers and len(headers) != len(rows[0]):
+        if len(headers) < len(rows[0]):
+            headers.extend(f"Column {i}" for i in range(len(headers), len(rows[0])))
+        else:
+            headers = headers[: len(rows[0])]
+
+    columns = headers if headers else None
+    return pd.DataFrame(rows, columns=columns)
 
 # def Sensitivity_Analysis():
 #     """Invoke the Sensitivity Analysis menu via the compiled C# helper."""
@@ -88,14 +108,19 @@ def Value_List_Item0(timeout: float = 60.0):
     return invoke_button("button21", timeout=timeout)
 
 def Sensitivity_Analysis_Calculate(timeout: float = 60.0):
-    """Open the value list entry for FOE value 2 (button22)."""
+    """Collect the Sensitivity Analysis results table (button22)."""
     return invoke_button("button22", timeout=timeout)
 
 def Parameters_Minimum_Surface_Weight_During_RIH(timeout: float = 90.0):
     """Toggle Minimum surface weight during RIH (button23)."""
     return invoke_button("button23", timeout=timeout)
 
-
+def Sensitivity_Table(timeout: float = 90.0):
+    """Sensitivity Table (button24)."""
+    table_data = collect_table("button24", timeout=timeout)
+    df = _table_to_dataframe(table_data)
+    print(df)
+    return df
 
 if __name__ == "__main__":
     # button_Sensitivity_Analysis()
@@ -118,10 +143,9 @@ if __name__ == "__main__":
     # Parameter_Matrix_FOE_Row0()
     # Value_List_FOE_1()
     # Value_List_Item0()
-    # Sensitivity_Analysis_Calculate()
-    Parameters_Minimum_Surface_Weight_During_RIH()
+    Sensitivity_Analysis_Calculate()
+    # Parameters_Minimum_Surface_Weight_During_RIH()
+    Sensitivity_Table()
 
 
    # list_buttons
-
-

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Mapping, Sequence
 
 
 def _default_project_root() -> Path:
@@ -83,6 +84,50 @@ def set_button_value(
         text=True,
         capture_output=capture_output,
     )
+
+
+def collect_table(
+    button_key: str,
+    *,
+    dump_path: str | Path | None = None,
+    window_regex: str | None = None,
+    exe_path: str | Path | None = None,
+    timeout: float = 180.0,
+) -> Mapping[str, list[list[str]]]:
+    """Collect a grid/table control as structured data using the C# helper."""
+    exe = Path(exe_path) if exe_path is not None else _default_exe_path()
+    if not exe.exists():
+        raise FileNotFoundError(f"Button automation helper not found at: {exe}")
+
+    resolved_dump = _prepare_dump_path(dump_path)
+
+    args: list[str] = [str(exe)]
+    if resolved_dump is not None:
+        args.extend(["--dump", str(resolved_dump)])
+    if window_regex:
+        args.extend(["--window-regex", window_regex])
+    args.extend(["collect", button_key])
+
+    completed = subprocess.run(
+        args,
+        check=True,
+        timeout=timeout,
+        text=True,
+        capture_output=True,
+    )
+
+    payload = completed.stdout.strip().splitlines()[-1] if completed.stdout.strip() else ""
+    if not payload:
+        return {"Headers": [], "Rows": []}  # type: ignore[return-value]
+
+    try:
+        parsed = json.loads(payload)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"Failed to parse table payload for '{button_key}': {payload}") from exc
+
+    headers = parsed.get("Headers", [])
+    rows = parsed.get("Rows", [])
+    return {"Headers": headers, "Rows": rows}  # type: ignore[return-value]
 
 
 def list_buttons(

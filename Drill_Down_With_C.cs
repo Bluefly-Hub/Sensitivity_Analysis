@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Text.Json;
 using System.Windows.Automation;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -544,6 +545,13 @@ namespace Cerberus.ButtonAutomation
             throw new InvalidOperationException($"Unable to set value on '{descriptor.Key}'. Control does not expose a writable ValuePattern.");
         }
 
+        public TableExtractionResult CollectTable(string key)
+        {
+            ButtonDescriptor descriptor;
+            AutomationElement element = ResolveElement(key, out descriptor);
+            return ExtractTable(element);
+        }
+
         public void PrintPatternDiagnostics(string key)
         {
             ButtonDescriptor descriptor;
@@ -746,6 +754,339 @@ namespace Cerberus.ButtonAutomation
             }
 
             return null;
+        }
+
+        private TableExtractionResult ExtractTable(AutomationElement tableElement)
+        {
+            if (tableElement is null)
+            {
+                throw new ArgumentNullException(nameof(tableElement));
+            }
+
+            if (TryExtractUsingGrid(tableElement, out TableExtractionResult viaGrid))
+            {
+                return viaGrid;
+            }
+
+            List<string> headers = CollectColumnHeaders(tableElement, columnCount: 0);
+            List<List<string>> rows = ExtractRowsFromDescendants(tableElement, headers.Count);
+
+            int columnCount = Math.Max(rows.Count > 0 ? rows.Max(row => row.Count) : 0, headers.Count);
+            if (columnCount == 0)
+            {
+                return new TableExtractionResult(headers, rows);
+            }
+
+            if (headers.Count == 0)
+            {
+                headers = Enumerable.Range(0, columnCount).Select(static index => $"Column {index}").ToList();
+            }
+            else if (headers.Count < columnCount)
+            {
+                headers.AddRange(Enumerable.Range(headers.Count, columnCount - headers.Count).Select(static index => $"Column {index}"));
+            }
+            else if (headers.Count > columnCount)
+            {
+                headers = headers.Take(columnCount).ToList();
+            }
+
+            for (int i = 0; i < rows.Count; i++)
+            {
+                List<string> row = rows[i];
+                if (row.Count < columnCount)
+                {
+                    row.AddRange(Enumerable.Repeat(string.Empty, columnCount - row.Count));
+                }
+                else if (row.Count > columnCount)
+                {
+                    row.RemoveRange(columnCount, row.Count - columnCount);
+                }
+            }
+
+            return new TableExtractionResult(headers, rows);
+        }
+
+        private bool TryExtractUsingGrid(AutomationElement tableElement, out TableExtractionResult result)
+        {
+            result = default!;
+            if (!tableElement.TryGetCurrentPattern(GridPattern.Pattern, out object? gridObj) || gridObj is not GridPattern gridPattern)
+            {
+                return false;
+            }
+
+            int rowCount = gridPattern.Current.RowCount;
+            int columnCount = gridPattern.Current.ColumnCount;
+            List<string> headers = CollectColumnHeaders(tableElement, columnCount);
+
+            var rows = new List<List<string>>(rowCount);
+            for (int rowIndex = 0; rowIndex < rowCount; rowIndex++)
+            {
+                var row = new List<string>(columnCount);
+                for (int columnIndex = 0; columnIndex < columnCount; columnIndex++)
+                {
+                    row.Add(ExtractCellText(gridPattern, rowIndex, columnIndex));
+                }
+                rows.Add(row);
+            }
+
+            result = new TableExtractionResult(headers, rows);
+            return true;
+        }
+
+        private List<string> CollectColumnHeaders(AutomationElement tableElement, int columnCount)
+        {
+            var headers = new List<string>();
+
+            try
+            {
+                if (tableElement.TryGetCurrentPattern(TablePattern.Pattern, out object? tableObj) && tableObj is TablePattern tablePattern)
+                {
+                    AutomationElement[]? columnHeaders = tablePattern.Current.GetColumnHeaders();
+                    if (columnHeaders is not null && columnHeaders.Length > 0)
+                    {
+                        foreach (AutomationElement header in columnHeaders)
+                        {
+                            headers.Add(ExtractElementText(header));
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore header extraction failures and fall back to other strategies.
+            }
+
+            if (headers.Count == 0)
+            {
+                try
+                {
+                    Condition headerCondition = new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.HeaderItem);
+                    AutomationElementCollection headerElements = tableElement.FindAll(TreeScope.Descendants, headerCondition);
+                    foreach (AutomationElement header in headerElements)
+                    {
+                        headers.Add(ExtractElementText(header));
+                    }
+                }
+                catch
+                {
+                    // Ignore find failures; we'll fall back to synthetic header names.
+                }
+            }
+
+            if (columnCount <= 0)
+            {
+                return headers;
+            }
+
+            if (headers.Count < columnCount)
+            {
+                for (int index = headers.Count; index < columnCount; index++)
+                {
+                    headers.Add($"Column {index}");
+                }
+            }
+            else if (headers.Count > columnCount)
+            {
+                headers = headers.Take(columnCount).ToList();
+            }
+
+            return headers;
+        }
+
+        private List<List<string>> ExtractRowsFromDescendants(AutomationElement tableElement, int expectedColumns)
+        {
+            var rows = new List<List<string>>();
+
+            try
+            {
+                AutomationElement? currentRow = TreeWalker.RawViewWalker.GetFirstChild(tableElement);
+                while (currentRow is not null)
+                {
+                    if (IsRowElement(currentRow))
+                    {
+                        List<string> cells = ExtractRowCells(currentRow, expectedColumns);
+                        if (cells.Count > 0 && cells.Any(static cell => !IsEmptyCellValue(cell)))
+                        {
+                            rows.Add(cells);
+                        }
+                    }
+
+                    currentRow = TreeWalker.RawViewWalker.GetNextSibling(currentRow);
+                }
+            }
+            catch
+            {
+                // Ignore traversal failures; best-effort extraction only.
+            }
+
+            return rows;
+        }
+
+        private List<string> ExtractRowCells(AutomationElement rowElement, int expectedColumns)
+        {
+            var values = new List<string>();
+
+            try
+            {
+                AutomationElementCollection candidates = rowElement.FindAll(TreeScope.Descendants, Condition.TrueCondition);
+                foreach (AutomationElement candidate in candidates)
+                {
+                    if (IsCellElement(candidate))
+                    {
+                        values.Add(ExtractElementText(candidate));
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore per-row extraction failures.
+            }
+
+            if (values.Count == 0)
+            {
+                string fallback = ExtractElementText(rowElement);
+                if (!string.IsNullOrEmpty(fallback))
+                {
+                    values.Add(fallback);
+                }
+            }
+
+            if (expectedColumns > 0 && values.Count < expectedColumns)
+            {
+                values.AddRange(Enumerable.Repeat(string.Empty, expectedColumns - values.Count));
+            }
+
+            return values;
+        }
+
+        private static bool IsRowElement(AutomationElement element)
+        {
+            ControlType controlType = element.Current.ControlType;
+            if (controlType == ControlType.DataItem || controlType == ControlType.ListItem)
+            {
+                return true;
+            }
+
+            if (controlType == ControlType.Custom)
+            {
+                string name = element.Current.Name ?? string.Empty;
+                return !string.Equals(name, "Top Row", StringComparison.OrdinalIgnoreCase);
+            }
+
+            return false;
+        }
+
+        private static bool IsCellElement(AutomationElement element)
+        {
+            ControlType controlType = element.Current.ControlType;
+            return controlType == ControlType.Text ||
+                   controlType == ControlType.Edit ||
+                   controlType == ControlType.Custom ||
+                   controlType == ControlType.DataItem;
+        }
+
+        private static bool IsEmptyCellValue(string value) =>
+            string.IsNullOrWhiteSpace(value) ||
+            string.Equals(value, "(null)", StringComparison.OrdinalIgnoreCase);
+
+        private string ExtractCellText(GridPattern gridPattern, int rowIndex, int columnIndex)
+        {
+            try
+            {
+                AutomationElement? cell = gridPattern.GetItem(rowIndex, columnIndex);
+                if (cell is null)
+                {
+                    return string.Empty;
+                }
+
+                return ExtractElementText(cell);
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+        private string ExtractElementText(AutomationElement element)
+        {
+            try
+            {
+                if (element.TryGetCurrentPattern(ValuePattern.Pattern, out object? valueObj) && valueObj is ValuePattern valuePattern)
+                {
+                    string value = valuePattern.Current.Value ?? string.Empty;
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        return NormalizeWhitespace(value);
+                    }
+                }
+
+                if (element.TryGetCurrentPattern(TextPattern.Pattern, out object? textObj) && textObj is TextPattern textPattern)
+                {
+                    string value = textPattern.DocumentRange.GetText(-1) ?? string.Empty;
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        return NormalizeWhitespace(value);
+                    }
+                }
+
+                string? legacyText = TryGetLegacyText(element);
+                if (!string.IsNullOrEmpty(legacyText))
+                {
+                    return NormalizeWhitespace(legacyText);
+                }
+
+                if (element.TryGetCurrentPattern(RangeValuePattern.Pattern, out object? rangeObj) && rangeObj is RangeValuePattern rangePattern)
+                {
+                    return NormalizeWhitespace(rangePattern.Current.Value.ToString(CultureInfo.InvariantCulture));
+                }
+            }
+            catch
+            {
+                // Swallow and fall back to the element name.
+            }
+
+            return NormalizeWhitespace(element.Current.Name ?? string.Empty);
+        }
+
+        private static string? TryGetLegacyText(AutomationElement element)
+        {
+            const int LegacyPatternId = 10018; // UIA_LegacyIAccessiblePatternId
+
+            try
+            {
+                AutomationPattern legacyPattern = AutomationPattern.LookupById(LegacyPatternId);
+                if (legacyPattern is null)
+                {
+                    return null;
+                }
+
+                if (!element.TryGetCurrentPattern(legacyPattern, out object? legacyObj) || legacyObj is null)
+                {
+                    return null;
+                }
+
+                PropertyInfo? currentProperty = legacyObj.GetType().GetProperty("Current");
+                object? currentValue = currentProperty?.GetValue(legacyObj);
+                if (currentValue is null)
+                {
+                    return null;
+                }
+
+                PropertyInfo? valueProperty = currentValue.GetType().GetProperty("Value");
+                string? value = valueProperty?.GetValue(currentValue) as string;
+                if (!string.IsNullOrEmpty(value))
+                {
+                    return value;
+                }
+
+                PropertyInfo? nameProperty = currentValue.GetType().GetProperty("Name");
+                string? name = nameProperty?.GetValue(currentValue) as string;
+                return name;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private AutomationElement? ResolveSelectionContainerElement(AutomationElement mainWindow, AutomationElement searchRoot, ButtonDescriptor descriptor)
@@ -1419,6 +1760,18 @@ namespace Cerberus.ButtonAutomation
         }
     }
 
+    internal sealed class TableExtractionResult
+    {
+        public TableExtractionResult(IReadOnlyList<string> headers, IReadOnlyList<IReadOnlyList<string>> rows)
+        {
+            Headers = headers;
+            Rows = rows;
+        }
+
+        public IReadOnlyList<string> Headers { get; }
+        public IReadOnlyList<IReadOnlyList<string>> Rows { get; }
+    }
+
     internal static class Program
     {
         private const string DefaultWindowRegex = ".*(Orpheus|Cerberus).*";
@@ -1536,6 +1889,19 @@ namespace Cerberus.ButtonAutomation
                     }
                     return 0;
 
+                case "collect":
+                case "table":
+                    if (arguments.Count == 0)
+                    {
+                        throw new InvalidOperationException("Missing button key for collect command.");
+                    }
+
+                    string collectKey = arguments.Dequeue();
+                    var collectRunner = new AutomationRunner(descriptors, windowRegex);
+                    TableExtractionResult table = collectRunner.CollectTable(collectKey);
+                    Console.WriteLine(JsonSerializer.Serialize(table));
+                    return 0;
+
                 default:
                     throw new InvalidOperationException($"Unknown command '{command}'.");
             }
@@ -1563,6 +1929,7 @@ namespace Cerberus.ButtonAutomation
             Console.WriteLine("  Drill_Down_With_C.exe [--dump <path>] [--window-regex <regex>] invoke <button-key>");
             Console.WriteLine("  Drill_Down_With_C.exe [--dump <path>] [--window-regex <regex>] patterns <button-key>");
             Console.WriteLine("  Drill_Down_With_C.exe [--dump <path>] [--window-regex <regex>] set <button-key> <value>");
+            Console.WriteLine("  Drill_Down_With_C.exe [--dump <path>] [--window-regex <regex>] collect <button-key>");
             Console.WriteLine();
             Console.WriteLine($"Default inspect dump path: {defaultDump}");
             Console.WriteLine($"Default window regex: {DefaultWindowRegex}");
