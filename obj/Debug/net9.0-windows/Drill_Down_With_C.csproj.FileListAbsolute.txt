@@ -12,3 +12,4 @@ C:\Users\bsmith\NCS Multistage\Technical Services - Projects\00_US\001 Brad Smit
 C:\Users\bsmith\NCS Multistage\Technical Services - Projects\00_US\001 Brad Smith\00-Projects\Active\Code\Cerberus_Sensitivity_Analysis\obj\Debug\net9.0-windows\Drill_Down_With_C.pdb
 C:\Users\bsmith\NCS Multistage\Technical Services - Projects\00_US\001 Brad Smith\00-Projects\Active\Code\Cerberus_Sensitivity_Analysis\obj\Debug\net9.0-windows\Drill_Down_With_C.genruntimeconfig.cache
 C:\Users\bsmith\NCS Multistage\Technical Services - Projects\00_US\001 Brad Smith\00-Projects\Active\Code\Cerberus_Sensitivity_Analysis\obj\Debug\net9.0-windows\ref\Drill_Down_With_C.dll
+C:\Users\bsmith\NCS Multistage\Technical Services - Projects\00_US\001 Brad Smith\00-Projects\Active\Code\Cerberus_Sensitivity_Analysis\obj\Debug\net9.0-windows\Drill_Down_With_C.sourcelink.json

@@ -1356,14 +1356,18 @@ namespace Cerberus.ButtonAutomation
                     continue;
                 }
 
+                Console.WriteLine($"[TRACE] EnsureAncestorsOpen: seeking '{ancestorName}'");
+
                 AutomationElement? ancestor = FindAncestor(currentRoot, ancestorName);
                 ancestor ??= FindAncestor(root, ancestorName);
                 ancestor ??= FindAncestor(AutomationElement.RootElement, ancestorName);
                 if (ancestor is null)
                 {
+                    Console.WriteLine($"[TRACE] EnsureAncestorsOpen: '{ancestorName}' not found");
                     continue;
                 }
 
+                Console.WriteLine($"[TRACE] EnsureAncestorsOpen: matched {DescribeElement(ancestor)}");
                 TryExpandOrInvoke(ancestor);
                 currentRoot = ancestor;
             }
@@ -1374,6 +1378,72 @@ namespace Cerberus.ButtonAutomation
             if (string.IsNullOrWhiteSpace(pattern))
             {
                 return null;
+            }
+
+            if (TryParseAutomationIdPattern(pattern, out string automationId))
+            {
+                try
+                {
+                    string rootAutomationId = root.Current.AutomationId ?? string.Empty;
+                    if (rootAutomationId.Equals(automationId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return root;
+                    }
+                }
+                catch
+                {
+                    // Ignore property access failures on Current.AutomationId.
+                }
+
+                var condition = new PropertyCondition(AutomationElement.AutomationIdProperty, automationId);
+
+                try
+                {
+                    AutomationElement? firstMatch = root.FindFirst(TreeScope.Descendants, condition);
+                    if (firstMatch is not null)
+                    {
+                        try
+                        {
+                            if (!firstMatch.Current.IsOffscreen)
+                            {
+                                return firstMatch;
+                            }
+                        }
+                        catch
+                        {
+                            // Ignore property access failures and fall through to collection search.
+                        }
+                    }
+                }
+                catch
+                {
+                    // Ignore and fall back to collection-based lookup.
+                }
+
+                try
+                {
+                    AutomationElementCollection matches = root.FindAll(TreeScope.Descendants, condition);
+                    foreach (AutomationElement match in matches)
+                    {
+                        try
+                        {
+                            if (!match.Current.IsOffscreen)
+                            {
+                                return match;
+                            }
+                        }
+                        catch
+                        {
+                            // Ignore property access failures and fall back to returning the first match.
+                        }
+                    }
+
+                    return matches.Count > 0 ? matches[0] : null;
+                }
+                catch
+                {
+                    return null;
+                }
             }
 
             bool allowWildcard = ContainsWildcard(pattern);
@@ -1436,21 +1506,60 @@ namespace Cerberus.ButtonAutomation
                     continue;
                 }
 
+                Console.WriteLine($"[TRACE] GetSearchRoot: seeking '{ancestorName}'");
+
                 AutomationElement? match = FindAncestor(current, ancestorName)
                     ?? FindAncestor(mainWindow, ancestorName)
                     ?? FindAncestor(AutomationElement.RootElement, ancestorName);
 
                 if (match is not null)
                 {
+                    Console.WriteLine($"[TRACE] GetSearchRoot: matched {DescribeElement(match)}");
                     current = match;
+                }
+                else
+                {
+                    Console.WriteLine($"[TRACE] GetSearchRoot: '{ancestorName}' not found");
                 }
             }
 
             return current;
         }
 
+        private static bool TryParseAutomationIdPattern(string pattern, out string automationId)
+        {
+            automationId = string.Empty;
+            if (string.IsNullOrWhiteSpace(pattern))
+            {
+                return false;
+            }
+
+            int equalsIndex = pattern.IndexOf('=');
+            if (equalsIndex < 0)
+            {
+                return false;
+            }
+
+            string attribute = pattern[..equalsIndex].Trim();
+            if (!attribute.Equals("AutomationId", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            string candidate = pattern[(equalsIndex + 1)..].Trim();
+            if (candidate.Length == 0)
+            {
+                return false;
+            }
+
+            automationId = candidate;
+            return true;
+        }
+
         private static bool ContainsWildcard(string value) =>
-            value.IndexOfAny(new[] { '*', '?' }) >= 0;
+            TryParseAutomationIdPattern(value, out string automationId)
+                ? automationId.IndexOfAny(new[] { '*', '?' }) >= 0
+                : value.IndexOfAny(new[] { '*', '?' }) >= 0;
 
         private static Regex CreateAncestorRegex(string pattern)
         {
@@ -1473,6 +1582,12 @@ namespace Cerberus.ButtonAutomation
             List<string> resolved = descriptor.Ancestors
                 .Select(ResolveAncestorName)
                 .ToList();
+
+            if (resolved.Count > 0)
+            {
+                Console.WriteLine($"[TRACE] Ancestor chain for '{descriptor.Key}': {string.Join(" -> ", resolved)}");
+            }
+
             _resolvedAncestorCache[descriptor.Key] = resolved;
             return resolved;
         }
@@ -1557,6 +1672,21 @@ namespace Cerberus.ButtonAutomation
             }
 
             return false;
+        }
+
+        private static string DescribeElement(AutomationElement element)
+        {
+            try
+            {
+                string name = element.Current.Name ?? string.Empty;
+                string automationId = element.Current.AutomationId ?? string.Empty;
+                string controlType = element.Current.ControlType.ProgrammaticName;
+                return $"{controlType} (Name='{name}', AutomationId='{automationId}')";
+            }
+            catch
+            {
+                return "<AutomationElement unavailable>";
+            }
         }
 
         private static void TryExpandOrInvoke(AutomationElement element)
