@@ -77,10 +77,8 @@ Previous:	[null]
 Other Props:	Object has no additional properties
 Children:	Container has no children
 Ancestors:	
-	"Tools" menu item
-	"MenuStrip1" menu bar
-	"Orpheus - <{{FILE_NAME}} (local)>     " window
-
+	"AutomationId =	MenuStrip1" window
+	"AutomationId =	frmOrpheus" window
 
 [button2]
 How found:	Selected from tree...
@@ -154,10 +152,8 @@ Previous:	"Calculate" button
 Other Props:	Object has no additional properties
 Children:	Container has no children
 Ancestors:	
-	" Sensitivity Analysis Wizard - {{FILE_NAME}}" window
-	"Orpheus - <{{FILE_NAME}} (local)>     " window
-
-
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
 
 [button3]
 How found:	Selected from tree...
@@ -228,10 +224,9 @@ Other Props:	Object has no additional properties
 Children:	Container has no children
 Ancestors:	
 	"File" menu item
-	"MenuStrip1" menu bar
-	" Sensitivity Analysis Wizard - {{FILE_NAME}}" window
-	"Orpheus - <{{FILE_NAME}} (local)>     " window
-
+	"AutomationId = MenuStrip1" window
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
 
 [button4]
 How found:	Selected from tree...
@@ -302,10 +297,11 @@ Previous:	[null]
 Other Props:	Object has no additional properties
 Children:	Container has no children
 Ancestors:	
-	"Template Name:" pane
-	" Open Sensitivity Template" window
-	" Sensitivity Analysis Wizard - {{FILE_NAME}}" window
-	"Orpheus - <{{FILE_NAME}} (local)>     " window
+	"AutomationId = lsbSettings" window
+	"AutomationId = SplitContainer1" window
+	"AutomationId = frmSensitivitySettingsDialog" window
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
 
 
 
@@ -382,10 +378,14 @@ Previous:	"Liquid flow rate" check box
 Other Props:	Object has no additional properties
 Children:	Container has no children
 Ancestors:
-	"Parameters" pane
-	"Sensitivity Setting" tab
-	" Sensitivity Analysis Wizard - {{FILE_NAME}}" window
-	"Orpheus - <{{FILE_NAME}} (local)>     " window
+	"AutomationId = pnlParameters" window
+	Parameters
+	"AutomationId = tabSettings" window
+	"AutomationId = SplitContainer2" window
+	"AutomationId = Panel15" window
+	"AutomationId = SplitContainer1" window
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
 
 
 
@@ -462,10 +462,15 @@ Previous:	"Pipe speed" check box
 Other Props:	Object has no additional properties
 Children:	Container has no children
 Ancestors:
-	"Parameters" pane
-	"Sensitivity Setting" tab
-	" Sensitivity Analysis Wizard - {{FILE_NAME}}" window
-	"Orpheus - <{{FILE_NAME}} (local)>     " window
+	"AutomationId = pnlParameters2" window
+	"AutomationId = pnlParameters" window
+	Parameters
+	"AutomationId = tabSettings" window
+	"AutomationId = SplitContainer2" window
+	"AutomationId = Panel15" window
+	"AutomationId = SplitContainer1" window
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
 
 
 [button7]
@@ -538,8 +543,8 @@ Other Props:	Object has no additional properties
 Children:	Container has no children
 Ancestors:	
 	"Sensitivity Setting" tab
-	" Sensitivity Analysis Wizard - {{FILE_NAME}}" window
-	"Orpheus - <{{FILE_NAME}} (local)>     " window
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
 
 
 
@@ -620,8 +625,8 @@ Ancestors:
 	"Force on end" pane
 	"Outputs" pane
 	"Sensitivity Setting" tab
-	" Sensitivity Analysis Wizard - {{FILE_NAME}}" window
-	"Orpheus - <{{FILE_NAME}} (local)>     " window
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
 
 
 
@@ -701,8 +706,8 @@ Ancestors:
 	"Force on end" pane
 	"Outputs" pane
 	"Sensitivity Setting" tab
-	" Sensitivity Analysis Wizard - {{FILE_NAME}}" window
-	"Orpheus - <{{FILE_NAME}} (local)>     " window
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
 
 
 
@@ -778,8 +783,6 @@ Previous:	[null]
 Other Props:	Object has no additional properties
 Children:	Container has no children
 Ancestors:	
-	" Sensitivity Analysis Wizard - {{FILE_NAME}}" window
-	"Orpheus - <{{FILE_NAME}} (local)>     " window
 
 
 
@@ -1195,9 +1198,11 @@ Previous:	[null]
 Other Props:	Object has no additional properties
 Children:	Container has no children
 Ancestors:	
-	" Sensitivity Parameter Matrix Wizard" window
-	" Sensitivity Analysis Wizard - {{FILE_NAME}}" window
-	"Orpheus - <{{FILE_NAME}} (local)>     " window
+	"AutomationId = Panel2" window
+	"AutomationId = frmParameterValueEditor" window
+	"AutomationId = frmSensitivityMatrix" window
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
 
 
 
@@ -1285,9 +1290,9 @@ Children:	Container has no children
 Ancestors:	
 	"Row 0" 
 	"DataGridView" table
-	" Sensitivity Parameter Matrix Wizard" window
-	" Sensitivity Analysis Wizard - {{FILE_NAME}}" window
-	"Orpheus - <{{FILE_NAME}} (local)>     " window
+	"AutomationId = frmSensitivityMatrix" window
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
 
 
 [button19]
@@ -1374,8 +1379,8 @@ Ancestors:
 	"Row 0" 
 	"DataGridView" table
 	" Sensitivity Parameter Matrix Wizard" window
-	" Sensitivity Analysis Wizard - {{FILE_NAME}}" window
-	"Orpheus - <{{FILE_NAME}} (local)>     " window
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
 
 
 [button21]
@@ -1446,12 +1451,10 @@ Previous:	[null]
 Other Props:	Object has no additional properties
 Children:	Container has no children
 Ancestors:	
-	"Value List:" list
-	"Edit Values:" pane
-	" Parameter Value Editor - *" window
-	" Sensitivity Parameter Matrix Wizard" window
-	" Sensitivity Analysis Wizard - {{FILE_NAME}}" window
-	"Orpheus - <{{FILE_NAME}} (local)>     " window
+	"AutomationId = frmParameterValueEditor" window
+	"AutomationId = frmSensitivityMatrix" window
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
 
 
 
@@ -1527,8 +1530,8 @@ Previous:	"Parameter Matrix Wizard..." button
 Other Props:	Object has no additional properties
 Children:	Container has no children
 Ancestors:	
-	" Sensitivity Analysis Wizard - {{FILE_NAME}}" window
-	"Orpheus - <{{FILE_NAME}} (local)>     " window
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
 
 
 
@@ -1608,8 +1611,8 @@ Ancestors:
 	"Force on end" pane
 	"Outputs" pane
 	"Sensitivity Setting" tab
-	" Sensitivity Analysis Wizard - {{FILE_NAME}}" window
-	"Orpheus - <{{FILE_NAME}} (local)>     " window
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
 
 
 [button24]
@@ -1748,10 +1751,11 @@ Children:	"Horizontal Scroll Bar" scroll bar
 	"Row 0" 
 	"Row 1" 
 Ancestors:	
-	"Data" pane
-	"auto" tab
-	" Sensitivity Analysis Wizard - {{FILE_NAME}}" window
-	"Orpheus - <{{FILE_NAME}} (local)>     " window
+	"AutomationId = tpAnalysisData" window
+	"AutomationId = tabAnalysis" window
+	"AutomationId = SplitContainer1" window	
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
 
 
 
@@ -1838,8 +1842,8 @@ Ancestors:
 	"DataGridView" table
 	"Data" pane
 	"auto" tab
-	" Sensitivity Analysis Wizard - {{FILE_NAME}}" window
-	"Orpheus - <{{FILE_NAME}} (local)>     " window
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
 
 
 [button26]
@@ -1917,8 +1921,8 @@ Children:	Container has no children
 Ancestors:	
 	"Parameters" pane
 	"Sensitivity Setting" tab
-	" Sensitivity Analysis Wizard - {{FILE_NAME}}" window
-	"Orpheus - <{{FILE_NAME}} (local)>     " window
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
 
 [button27]
 How found:	Selected from tree...
@@ -2082,6 +2086,84 @@ Ancestors:	"Row 0"
 
 
 [button29]
+How found:	Selected from tree...
+Name:	"OK"
+ControlType:	UIA_ButtonControlTypeId (0xC350)
+LocalizedControlType:	"button"
+BoundingRectangle:	{l:1152 t:764 r:1233 b:791}
+IsEnabled:	true
+IsOffscreen:	false
+IsKeyboardFocusable:	true
+HasKeyboardFocus:	false
+AccessKey:	""
+ProcessId:	3060
+RuntimeId:	[2A.D1766]
+AutomationId:	"cmdOK"
+FrameworkId:	"WinForm"
+ClassName:	"WindowsForms10.BUTTON.app.0.141b42a_r7_ad1"
+NativeWindowHandle:	0xD1766
+ProviderDescription:	"[pid:6440,providerId:0xD1766 Main:Nested [pid:3060,providerId:0xD1766 Main(parent link):Microsoft: MSAA Proxy (unmanaged:uiautomationcore.dll)]; Hwnd(parent link):Microsoft: HWND Proxy (unmanaged:uiautomationcore.dll)]"
+IsPassword:	false
+HelpText:	""
+IsDialog:	false
+LegacyIAccessible.ChildId:	0
+LegacyIAccessible.DefaultAction:	"Press"
+LegacyIAccessible.Description:	""
+LegacyIAccessible.Help:	""
+LegacyIAccessible.KeyboardShortcut:	""
+LegacyIAccessible.Name:	"OK"
+LegacyIAccessible.Role:	push button (0x2B)
+LegacyIAccessible.State:	focusable (0x100000)
+LegacyIAccessible.Value:	""
+IsAnnotationPatternAvailable:	false
+IsDragPatternAvailable:	false
+IsDockPatternAvailable:	false
+IsDropTargetPatternAvailable:	false
+IsExpandCollapsePatternAvailable:	false
+IsGridItemPatternAvailable:	false
+IsGridPatternAvailable:	false
+IsInvokePatternAvailable:	true
+IsItemContainerPatternAvailable:	false
+IsLegacyIAccessiblePatternAvailable:	true
+IsMultipleViewPatternAvailable:	false
+IsObjectModelPatternAvailable:	false
+IsRangeValuePatternAvailable:	false
+IsScrollItemPatternAvailable:	false
+IsScrollPatternAvailable:	false
+IsSelectionItemPatternAvailable:	false
+IsSelectionPatternAvailable:	false
+IsSpreadsheetItemPatternAvailable:	false
+IsSpreadsheetPatternAvailable:	false
+IsStylesPatternAvailable:	false
+IsSynchronizedInputPatternAvailable:	false
+IsTableItemPatternAvailable:	false
+IsTablePatternAvailable:	false
+IsTextChildPatternAvailable:	false
+IsTextEditPatternAvailable:	false
+IsTextPatternAvailable:	false
+IsTextPattern2Available:	false
+IsTogglePatternAvailable:	false
+IsTransformPatternAvailable:	false
+IsTransform2PatternAvailable:	false
+IsValuePatternAvailable:	false
+IsVirtualizedItemPatternAvailable:	false
+IsWindowPatternAvailable:	false
+IsCustomNavigationPatternAvailable:	false
+IsSelectionPattern2Available:	false
+FirstChild:	[null]
+LastChild:	[null]
+Next:	"Cancel" button
+Previous:	[null]
+Other Props:	Object has no additional properties
+Children:	Container has no children
+Ancestors:	
+	"AutomationId = Panel2" window
+	"AutomationId = Panel1" window
+	"AutomationId = frmSensitivityMatrix" window
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
+
+
 
 [button30]
 

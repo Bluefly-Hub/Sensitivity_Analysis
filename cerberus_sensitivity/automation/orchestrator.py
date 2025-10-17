@@ -32,6 +32,7 @@ from .button_repository import (
     Value_List_Item0,
     button_Sensitivity_Analysis,
     button_exit_wizard,
+    Sensitivity_Parameter_ok
 )
 from .inputs import SensitivityInputRow, SensitivityInputs
 from .progress import ProgressReporter
@@ -271,7 +272,7 @@ def _open_parameter_matrix() -> None:
 
 
 def _close_parameter_matrix() -> None:
-    button_exit_wizard()
+    Sensitivity_Parameter_ok()
     time.sleep(0.3)
 
 
@@ -327,7 +328,7 @@ def _clear_value_list(max_attempts: int = 1) -> None:
 
 def _recalc_and_collect_table(timeout: float = 60.0) -> pd.DataFrame:
     Sensitivity_Analysis_Calculate(timeout=timeout)
-    time.sleep(1.0)
+    #time.sleep(1.0)
     table = Sensitivity_Table(timeout=timeout)
     if table is None or table.empty:
         raise RuntimeError("Sensitivity table did not return any data.")

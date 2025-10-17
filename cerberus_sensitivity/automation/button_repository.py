@@ -285,6 +285,9 @@ def Parameters_RIH(checked: bool | None = None, timeout: float = 90.0):
         return invoke_button("button26", timeout=timeout)
     return _set_checkbox_state("button26", checked, timeout=timeout)
 
+def Sensitivity_Parameter_ok(timeout: float = 60.0):
+    """Trigger the PAD OK button (button29)."""
+    return invoke_button("button29", timeout=timeout)
 
 def list_defined_buttons(*, timeout: float = 30.0):
     return list_buttons(timeout=timeout)

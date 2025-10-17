@@ -712,11 +712,87 @@ namespace Cerberus.ButtonAutomation
                 _ => new AndCondition(conditions.ToArray()),
             };
 
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
             AutomationElement searchRoot = GetSearchRoot(root, descriptor) ?? root;
 
-            AutomationElement? element = searchRoot.FindFirst(TreeScope.Descendants, searchCondition);
+            void LogSuccess(string phase)
+            {
+                stopwatch.Stop();
+                Console.WriteLine($"[TRACE] Element located ({phase}) in {stopwatch.ElapsedMilliseconds} ms");
+            }
+
+            if (!string.IsNullOrEmpty(descriptor.AutomationId))
+            {
+                AutomationElement? directIdMatch = FindChildByAutomationId(searchRoot, descriptor.AutomationId);
+                if (directIdMatch is not null)
+                {
+                    LogSuccess("child automationId (walker)");
+                    return directIdMatch;
+                }
+            }
+
+            var priorityChildren = new List<AutomationElement>();
+            var deferredChildren = new List<AutomationElement>();
+
+            try
+            {
+                AutomationElement? child = TreeWalker.RawViewWalker.GetFirstChild(searchRoot);
+                while (child is not null)
+                {
+                    if (ElementMatchesDescriptor(child, descriptor))
+                    {
+                        LogSuccess("direct child");
+                        return child;
+                    }
+
+                    if (ShouldDeferChild(child))
+                    {
+                        Console.WriteLine($"[TRACE] Deferring child {DescribeElement(child)}");
+                        deferredChildren.Add(child);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[TRACE] Prioritizing child {DescribeElement(child)}");
+                        priorityChildren.Add(child);
+                    }
+
+                    child = TreeWalker.RawViewWalker.GetNextSibling(child);
+                }
+            }
+            catch
+            {
+                // Ignore child enumeration errors and continue with fallbacks.
+            }
+
+            AutomationElement? element = null;
+
+            foreach (AutomationElement candidate in priorityChildren)
+            {
+                element = candidate.FindFirst(TreeScope.Children, searchCondition)
+                    ?? candidate.FindFirst(TreeScope.Descendants, searchCondition);
+                if (element is not null)
+                {
+                    LogSuccess("priority child");
+                    return element;
+                }
+            }
+
+            foreach (AutomationElement candidate in deferredChildren)
+            {
+                element = candidate.FindFirst(TreeScope.Children, searchCondition)
+                    ?? candidate.FindFirst(TreeScope.Descendants, searchCondition);
+                if (element is not null)
+                {
+                    LogSuccess("deferred child");
+                    return element;
+                }
+            }
+
+            element = searchRoot.FindFirst(TreeScope.Descendants, searchCondition);
             if (element is not null)
             {
+                LogSuccess("fallback descendants");
                 return element;
             }
 
@@ -725,6 +801,7 @@ namespace Cerberus.ButtonAutomation
                 element = FindByNormalizedName(searchRoot, descriptor);
                 if (element is not null)
                 {
+                    LogSuccess("normalized name");
                     return element;
                 }
             }
@@ -735,6 +812,7 @@ namespace Cerberus.ButtonAutomation
                 element = SelectFirstChild(containerElement, descriptor);
                 if (element is not null)
                 {
+                    LogSuccess("selection container");
                     return element;
                 }
             }
@@ -744,11 +822,21 @@ namespace Cerberus.ButtonAutomation
                 element = root.FindFirst(TreeScope.Descendants, searchCondition);
                 if (element is not null)
                 {
+                    LogSuccess("root fallback");
                     return element;
                 }
             }
 
-            return AutomationElement.RootElement.FindFirst(TreeScope.Descendants, searchCondition);
+            element = AutomationElement.RootElement.FindFirst(TreeScope.Descendants, searchCondition);
+            if (element is not null)
+            {
+                LogSuccess("global descendants");
+            }
+            else
+            {
+                stopwatch.Stop();
+            }
+            return element;
         }
 
         private static AutomationElement? FindByNormalizedName(AutomationElement searchRoot, ButtonDescriptor descriptor)
@@ -1395,6 +1483,12 @@ namespace Cerberus.ButtonAutomation
                     // Ignore property access failures on Current.AutomationId.
                 }
 
+                AutomationElement? bfsMatch = FindChildByAutomationId(root, automationId);
+                if (bfsMatch is not null)
+                {
+                    return bfsMatch;
+                }
+
                 var condition = new PropertyCondition(AutomationElement.AutomationIdProperty, automationId);
 
                 try
@@ -1560,6 +1654,170 @@ namespace Cerberus.ButtonAutomation
             TryParseAutomationIdPattern(value, out string automationId)
                 ? automationId.IndexOfAny(new[] { '*', '?' }) >= 0
                 : value.IndexOfAny(new[] { '*', '?' }) >= 0;
+
+        private static AutomationElement? FindChildByAutomationId(AutomationElement root, string automationId)
+        {
+            if (string.IsNullOrEmpty(automationId))
+            {
+                return null;
+            }
+
+            var queue = new Queue<AutomationElement>();
+
+            void EnqueueChildren(AutomationElement parent)
+            {
+                try
+                {
+                    AutomationElement? current = TreeWalker.RawViewWalker.GetFirstChild(parent);
+                    while (current is not null)
+                    {
+                        queue.Enqueue(current);
+                        current = TreeWalker.RawViewWalker.GetNextSibling(current);
+                    }
+                }
+                catch
+                {
+                    // Ignore traversal errors and continue.
+                }
+            }
+
+            EnqueueChildren(root);
+
+            while (queue.Count > 0)
+            {
+                AutomationElement candidate = queue.Dequeue();
+                try
+                {
+                    string candidateId = candidate.Current.AutomationId ?? string.Empty;
+                    if (candidateId.Equals(automationId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return candidate;
+                    }
+                }
+                catch
+                {
+                    // Ignore property access failures and continue scanning.
+                }
+
+                EnqueueChildren(candidate);
+            }
+
+            return null;
+        }
+
+        private static bool ElementMatchesDescriptor(AutomationElement element, ButtonDescriptor descriptor)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(descriptor.AutomationId))
+                {
+                    string automationId = element.Current.AutomationId ?? string.Empty;
+                    if (automationId.Equals(descriptor.AutomationId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                if (!string.IsNullOrEmpty(descriptor.Name))
+                {
+                    string name = element.Current.Name ?? string.Empty;
+                    if (!NameMatches(descriptor.Name, name))
+                    {
+                        return false;
+                    }
+                }
+
+                if (descriptor.ControlType is not null)
+                {
+                    if (!descriptor.ControlType.Equals(element.Current.ControlType))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static bool ShouldDeferChild(AutomationElement element)
+        {
+            try
+            {
+                ControlType controlType = element.Current.ControlType;
+                if (controlType == ControlType.Table ||
+                    controlType == ControlType.DataGrid ||
+                    controlType == ControlType.List ||
+                    controlType == ControlType.Tree)
+                {
+                    return true;
+                }
+
+                string automationId = element.Current.AutomationId ?? string.Empty;
+                if (automationId.IndexOf("grid", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    automationId.IndexOf("table", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return true;
+                }
+
+                if (IsLikelyGeneratedId(automationId))
+                {
+                    return true;
+                }
+
+                string name = element.Current.Name ?? string.Empty;
+                if (name.IndexOf("grid", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    name.IndexOf("table", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return true;
+                }
+            }
+            catch
+            {
+                // Ignore property access failures; treat as non-deferred.
+            }
+
+            return false;
+        }
+
+        private static bool IsLikelyGeneratedId(string automationId)
+        {
+            if (string.IsNullOrEmpty(automationId))
+            {
+                return false;
+            }
+
+            if (automationId.IndexOf("cmd", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                automationId.IndexOf("btn", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return false;
+            }
+
+            if (automationId.Length >= 4)
+            {
+                bool allHex = true;
+                foreach (char c in automationId)
+                {
+                    if (!Uri.IsHexDigit(c))
+                    {
+                        allHex = false;
+                        break;
+                    }
+                }
+
+                if (allHex)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         private static Regex CreateAncestorRegex(string pattern)
         {
@@ -1808,13 +2066,20 @@ namespace Cerberus.ButtonAutomation
         {
             try
             {
-                return action switch
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                bool result = action switch
                 {
                     ButtonAction.Invoke => TryInvoke(element),
                     ButtonAction.Toggle => TryToggle(element),
                     ButtonAction.Select => TrySelect(element),
                     _ => false,
                 };
+                sw.Stop();
+                if (result)
+                {
+                    Console.WriteLine($"[TRACE] Action {action} completed in {sw.ElapsedMilliseconds} ms");
+                }
+                return result;
             }
             catch (InvalidOperationException)
             {
