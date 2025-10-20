@@ -566,51 +566,6 @@ namespace Cerberus.ButtonAutomation
             return ExtractTable(element, descriptor);
         }
 
-        public ControlValueResult GetControlValue(string key)
-        {
-            ButtonDescriptor descriptor;
-            AutomationElement element = ResolveElement(key, out descriptor);
-
-            string displayValue = ExtractElementText(element);
-            string? valuePatternValue = null;
-            double? rangeValue = null;
-            double? rangeMinimum = null;
-            double? rangeMaximum = null;
-
-            try
-            {
-                if (element.TryGetCurrentPattern(ValuePattern.Pattern, out object? valueObj) && valueObj is ValuePattern valuePattern)
-                {
-                    valuePatternValue = valuePattern.Current.Value;
-                }
-            }
-            catch
-            {
-                // Ignore ValuePattern read failures.
-            }
-
-            try
-            {
-                if (element.TryGetCurrentPattern(RangeValuePattern.Pattern, out object? rangeObj) && rangeObj is RangeValuePattern rangePattern)
-                {
-                    RangeValuePattern.RangeValuePatternInformation rangeInfo = rangePattern.Current;
-                    rangeValue = rangeInfo.Value;
-                    rangeMinimum = rangeInfo.Minimum;
-                    rangeMaximum = rangeInfo.Maximum;
-                }
-            }
-            catch
-            {
-                // Ignore RangeValuePattern read failures.
-            }
-
-            return new ControlValueResult(
-                string.IsNullOrWhiteSpace(displayValue) ? null : displayValue,
-                string.IsNullOrWhiteSpace(valuePatternValue) ? null : valuePatternValue,
-                rangeValue,
-                rangeMinimum,
-                rangeMaximum);
-        }
 
         public void PrintPatternDiagnostics(string key)
         {
@@ -2607,24 +2562,6 @@ namespace Cerberus.ButtonAutomation
         }
     }
 
-    internal sealed class ControlValueResult
-    {
-        public ControlValueResult(string? displayValue, string? valuePattern, double? rangeValue, double? rangeMinimum, double? rangeMaximum)
-        {
-            DisplayValue = displayValue;
-            ValuePattern = valuePattern;
-            RangeValue = rangeValue;
-            RangeMinimum = rangeMinimum;
-            RangeMaximum = rangeMaximum;
-        }
-
-        public string? DisplayValue { get; }
-        public string? ValuePattern { get; }
-        public double? RangeValue { get; }
-        public double? RangeMinimum { get; }
-        public double? RangeMaximum { get; }
-    }
-
     internal sealed class TableExtractionResult
     {
         public TableExtractionResult(IReadOnlyList<string> headers, IReadOnlyList<IReadOnlyList<string>> rows)
@@ -2765,20 +2702,6 @@ namespace Cerberus.ButtonAutomation
                     var collectRunner = new AutomationRunner(descriptors, windowRegex);
                     TableExtractionResult table = collectRunner.CollectTable(collectKey);
                     Console.WriteLine(JsonSerializer.Serialize(table));
-                    return 0;
-
-                case "value":
-                case "read":
-                case "get":
-                    if (arguments.Count == 0)
-                    {
-                        throw new InvalidOperationException("Missing button key for value command.");
-                    }
-
-                    string valueKey = arguments.Dequeue();
-                    var valueRunner = new AutomationRunner(descriptors, windowRegex);
-                    ControlValueResult valueResult = valueRunner.GetControlValue(valueKey);
-                    Console.WriteLine(JsonSerializer.Serialize(valueResult));
                     return 0;
 
                 default:

@@ -1117,7 +1117,6 @@ Previous:	"" button
 Other Props:	Object has no additional properties
 Children:	Container has no children
 Ancestors:	
-	"AutomationId = pnlNumeric" window
 	"AutomationId = Panel3" window
 	"AutomationId = SplitContainer1" window
 	"AutomationId = frmParameterValueEditor" window
@@ -2166,7 +2165,86 @@ Ancestors:
 
 
 [button30]
-
+How found:	Selected from tree...
+Name:	" Sensitivity Analysis Wizard - Abbey A-02"
+ControlType:	UIA_ProgressBarControlTypeId (0xC35C)
+LocalizedControlType:	"progress bar"
+BoundingRectangle:	{l:1324 t:194 r:1564 b:209}
+IsEnabled:	true
+IsOffscreen:	false
+IsKeyboardFocusable:	true
+HasKeyboardFocus:	false
+AccessKey:	""
+ProcessId:	472
+RuntimeId:	[2A.60684]
+AutomationId:	"ProgressBar1"
+FrameworkId:	"WinForm"
+ClassName:	"WindowsForms10.msctls_progress32.app.0.141b42a_r7_ad1"
+NativeWindowHandle:	0x60684
+ProviderDescription:	"[pid:10312,providerId:0x60684 Main:Nested [pid:472,providerId:0x60684 Main(parent link):Microsoft: MSAA Proxy (unmanaged:uiautomationcore.dll)]; Hwnd(parent link):Microsoft: HWND Proxy (unmanaged:uiautomationcore.dll)]"
+IsPassword:	false
+HelpText:	""
+IsDialog:	false
+LegacyIAccessible.ChildId:	0
+LegacyIAccessible.DefaultAction:	""
+LegacyIAccessible.Description:	""
+LegacyIAccessible.Help:	""
+LegacyIAccessible.KeyboardShortcut:	""
+LegacyIAccessible.Name:	" Sensitivity Analysis Wizard - Abbey A-02"
+LegacyIAccessible.Role:	progress bar (0x30)
+LegacyIAccessible.State:	read only,focusable (0x100040)
+LegacyIAccessible.Value:	"61%"
+RangeValue.IsReadOnly:	true
+RangeValue.Maximum:	100.000000
+RangeValue.Minimum:	0.000000
+RangeValue.Value:	61.000000
+Value.IsReadOnly:	true
+Value.Value:	"61%"
+IsAnnotationPatternAvailable:	false
+IsDragPatternAvailable:	false
+IsDockPatternAvailable:	false
+IsDropTargetPatternAvailable:	false
+IsExpandCollapsePatternAvailable:	false
+IsGridItemPatternAvailable:	false
+IsGridPatternAvailable:	false
+IsInvokePatternAvailable:	false
+IsItemContainerPatternAvailable:	false
+IsLegacyIAccessiblePatternAvailable:	true
+IsMultipleViewPatternAvailable:	false
+IsObjectModelPatternAvailable:	false
+IsRangeValuePatternAvailable:	true
+IsScrollItemPatternAvailable:	false
+IsScrollPatternAvailable:	false
+IsSelectionItemPatternAvailable:	false
+IsSelectionPatternAvailable:	false
+IsSpreadsheetItemPatternAvailable:	false
+IsSpreadsheetPatternAvailable:	false
+IsStylesPatternAvailable:	false
+IsSynchronizedInputPatternAvailable:	false
+IsTableItemPatternAvailable:	false
+IsTablePatternAvailable:	false
+IsTextChildPatternAvailable:	false
+IsTextEditPatternAvailable:	false
+IsTextPatternAvailable:	false
+IsTextPattern2Available:	false
+IsTogglePatternAvailable:	false
+IsTransformPatternAvailable:	false
+IsTransform2PatternAvailable:	false
+IsValuePatternAvailable:	true
+IsVirtualizedItemPatternAvailable:	false
+IsWindowPatternAvailable:	false
+IsCustomNavigationPatternAvailable:	false
+IsSelectionPattern2Available:	false
+FirstChild:	[null]
+LastChild:	[null]
+Next:	"Press ESC key or click here to" text
+Previous:	[null]
+Other Props:	Object has no additional properties
+Children:	Container has no children
+Ancestors:	" Sensitivity Analysis Wizard - Abbey A-02" pane
+	"AutomationId = pnlCalcProgress" window
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
 [button31]
 
 [button32]

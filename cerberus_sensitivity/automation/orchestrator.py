@@ -27,7 +27,6 @@ from .button_repository import (
     Parameters_Pipe_fluid_density,
     Parameters_RIH,
     Sensitivity_Analysis_Calculate,
-    Sensitivity_Progress,
     Sensitivity_Setting_Outputs,
     Sensitivity_Table,
     Value_List_Item0,
@@ -43,8 +42,6 @@ from .run_plan import RunPlan, chunk_depths
 MAX_ITERATIONS_PER_RUN = 200
 RIH_MODE = "RIH"
 POOH_MODE = "POOH"
-PROGRESS_COMPLETE_THRESHOLD = 99.9
-PROGRESS_POLL_INTERVAL = 0.5
 
 _TEMPLATE_SELECTORS: Dict[str, Callable[..., object]] = {
     "auto": File_OpenTemplate_auto,
@@ -346,47 +343,10 @@ def _clear_value_list(max_attempts: int = 1) -> None:
             break
 
 
-def _wait_for_progress_completion(
-    timeout: float = 180.0,
-    poll_interval: float = PROGRESS_POLL_INTERVAL,
-) -> None:
-    """Poll the progress bar until it reaches 100% or the timeout expires."""
-    deadline = time.time() + timeout
-    last_progress: float | None = None
-    last_exception: Exception | None = None
-
-    while time.time() < deadline:
-        try:
-            progress = Sensitivity_Progress(timeout=min(max(poll_interval * 4, 5.0), timeout))
-        except (subprocess.CalledProcessError, RuntimeError) as exc:
-            last_exception = exc
-            progress = None
-
-        if progress is not None:
-            last_progress = progress
-            if progress >= PROGRESS_COMPLETE_THRESHOLD:
-                return
-        time.sleep(poll_interval)
-
-    if last_progress is not None:
-        raise TimeoutError(
-            f"Sensitivity calculation progress stalled at {last_progress:.1f}% before timeout ({timeout}s)."
-        )
-    if last_exception is not None:
-        raise TimeoutError(
-            "Sensitivity calculation progress was unavailable before timeout."
-        ) from last_exception
-    raise TimeoutError(
-        f"Sensitivity calculation progress did not reach {PROGRESS_COMPLETE_THRESHOLD}% within {timeout}s."
-    )
-
-
-def _recalc_and_collect_table(timeout: float = 60.0) -> pd.DataFrame:
+def _recalc_and_collect_table(timeout: float = 120.0) -> pd.DataFrame:
     Sensitivity_Analysis_Calculate(timeout=timeout)
-    progress_timeout = max(timeout * 3, 180.0)
-    _wait_for_progress_completion(timeout=progress_timeout)
-    table_timeout = max(timeout, 120.0)
-    table = Sensitivity_Table(timeout=table_timeout)
+    #time.sleep(1.0)
+    table = Sensitivity_Table(timeout=timeout)
     if table is None or table.empty:
         raise RuntimeError("Sensitivity table did not return any data.")
     return table
