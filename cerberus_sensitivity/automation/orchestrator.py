@@ -4,7 +4,7 @@ import subprocess
 import threading
 import time
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Iterable, List, Sequence
+from typing import Any, Callable, Dict, Iterable, List, Sequence, Tuple
 
 import pandas as pd
 
@@ -27,12 +27,13 @@ from .button_repository import (
     Parameters_Pipe_fluid_density,
     Parameters_RIH,
     Sensitivity_Analysis_Calculate,
+    Sensitivity_Progress,
     Sensitivity_Setting_Outputs,
     Sensitivity_Table,
     Value_List_Item0,
     button_Sensitivity_Analysis,
     button_exit_wizard,
-    Sensitivity_Parameter_ok
+    Sensitivity_Parameter_ok,
 )
 from .inputs import SensitivityInputRow, SensitivityInputs
 from .progress import ProgressReporter
@@ -42,6 +43,8 @@ from .run_plan import RunPlan, chunk_depths
 MAX_ITERATIONS_PER_RUN = 200
 RIH_MODE = "RIH"
 POOH_MODE = "POOH"
+PROGRESS_COMPLETE_THRESHOLD = 99.9
+PROGRESS_POLL_INTERVAL = 0.5
 
 _TEMPLATE_SELECTORS: Dict[str, Callable[..., object]] = {
     "auto": File_OpenTemplate_auto,
@@ -94,6 +97,7 @@ class CerberusOrchestrator:
 
         rih_frames: List[pd.DataFrame] = []
         pooh_frames: List[pd.DataFrame] = []
+        parameter_value_cache: Dict[str, Tuple[float, ...]] = {}
 
         for plan in run_plan:
             if cancel_event.is_set():
@@ -106,12 +110,15 @@ class CerberusOrchestrator:
 
             _open_parameter_matrix()
             # BHA depth must be loaded first so subsequent parameters reference the correct slice
-            _update_parameter_values("BHA Depth", plan.depth_values)
+            _update_parameter_values("BHA Depth", plan.depth_values, cache=parameter_value_cache)
             if plan.include_pipe_density:
-                _update_parameter_values("Pipe Fluid Density", inputs.pipe_fluid_densities)
+                _update_parameter_values(
+                    "Pipe Fluid Density", inputs.pipe_fluid_densities, cache=parameter_value_cache
+                )
             if plan.include_force_on_end:
                 foe_values = inputs.stretch_foe_rih if plan.mode == "RIH" else inputs.stretch_foe_pooh
                 caption = "Force on End - RIH" if plan.mode == "RIH" else "Force on End - POOH"
+                # FOE lists differ by mode, so always refresh instead of using cache
                 _update_parameter_values(caption, foe_values)
             _close_parameter_matrix()
 
@@ -280,9 +287,19 @@ def _update_parameter_values(
     parameter_caption: str,
     values: Iterable[float],
     ensure_clear: bool = True,
+    cache: Dict[str, Tuple[float, ...]] | None = None,
 ) -> None:
+    normalized_caption = parameter_caption.strip()
+    normalized_key = normalized_caption
+
     sequence = [value for value in values if value is not None]
     if not sequence:
+        if cache is not None:
+            cache.pop(normalized_key, None)
+        return
+
+    sequence_tuple: Tuple[float, ...] = tuple(sequence)
+    if cache is not None and cache.get(normalized_key) == sequence_tuple:
         return
 
     selector = _resolve_parameter_selector(parameter_caption)
@@ -300,6 +317,9 @@ def _update_parameter_values(
 
     Edit_cmdOK()
     time.sleep(0.2)
+
+    if cache is not None:
+        cache[normalized_key] = sequence_tuple
 
 
 def _resolve_parameter_selector(caption: str):
@@ -326,10 +346,47 @@ def _clear_value_list(max_attempts: int = 1) -> None:
             break
 
 
+def _wait_for_progress_completion(
+    timeout: float = 180.0,
+    poll_interval: float = PROGRESS_POLL_INTERVAL,
+) -> None:
+    """Poll the progress bar until it reaches 100% or the timeout expires."""
+    deadline = time.time() + timeout
+    last_progress: float | None = None
+    last_exception: Exception | None = None
+
+    while time.time() < deadline:
+        try:
+            progress = Sensitivity_Progress(timeout=min(max(poll_interval * 4, 5.0), timeout))
+        except (subprocess.CalledProcessError, RuntimeError) as exc:
+            last_exception = exc
+            progress = None
+
+        if progress is not None:
+            last_progress = progress
+            if progress >= PROGRESS_COMPLETE_THRESHOLD:
+                return
+        time.sleep(poll_interval)
+
+    if last_progress is not None:
+        raise TimeoutError(
+            f"Sensitivity calculation progress stalled at {last_progress:.1f}% before timeout ({timeout}s)."
+        )
+    if last_exception is not None:
+        raise TimeoutError(
+            "Sensitivity calculation progress was unavailable before timeout."
+        ) from last_exception
+    raise TimeoutError(
+        f"Sensitivity calculation progress did not reach {PROGRESS_COMPLETE_THRESHOLD}% within {timeout}s."
+    )
+
+
 def _recalc_and_collect_table(timeout: float = 60.0) -> pd.DataFrame:
     Sensitivity_Analysis_Calculate(timeout=timeout)
-    #time.sleep(1.0)
-    table = Sensitivity_Table(timeout=timeout)
+    progress_timeout = max(timeout * 3, 180.0)
+    _wait_for_progress_completion(timeout=progress_timeout)
+    table_timeout = max(timeout, 120.0)
+    table = Sensitivity_Table(timeout=table_timeout)
     if table is None or table.empty:
         raise RuntimeError("Sensitivity table did not return any data.")
     return table

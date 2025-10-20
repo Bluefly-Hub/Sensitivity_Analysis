@@ -130,6 +130,47 @@ def collect_table(
     return {"Headers": headers, "Rows": rows}  # type: ignore[return-value]
 
 
+def get_button_value(
+    button_key: str,
+    *,
+    dump_path: str | Path | None = None,
+    window_regex: str | None = None,
+    exe_path: str | Path | None = None,
+    timeout: float = 180.0,
+) -> Mapping[str, Any]:
+    """Read the Value/RangeValue patterns for a control using the C# helper."""
+    exe = Path(exe_path) if exe_path is not None else _default_exe_path()
+    if not exe.exists():
+        raise FileNotFoundError(f"Button automation helper not found at: {exe}")
+
+    resolved_dump = _prepare_dump_path(dump_path)
+
+    args: list[str] = [str(exe)]
+    if resolved_dump is not None:
+        args.extend(["--dump", str(resolved_dump)])
+    if window_regex:
+        args.extend(["--window-regex", window_regex])
+    args.extend(["value", button_key])
+
+    completed = subprocess.run(
+        args,
+        check=True,
+        timeout=timeout,
+        text=True,
+        capture_output=True,
+    )
+
+    payload = completed.stdout.strip().splitlines()[-1] if completed.stdout.strip() else ""
+    if not payload:
+        return {}
+
+    try:
+        parsed = json.loads(payload)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"Failed to parse value payload for '{button_key}': {payload}") from exc
+    return parsed  # type: ignore[return-value]
+
+
 def list_buttons(
     *,
     dump_path: str | Path | None = None,

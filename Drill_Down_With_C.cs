@@ -566,6 +566,52 @@ namespace Cerberus.ButtonAutomation
             return ExtractTable(element, descriptor);
         }
 
+        public ControlValueResult GetControlValue(string key)
+        {
+            ButtonDescriptor descriptor;
+            AutomationElement element = ResolveElement(key, out descriptor);
+
+            string displayValue = ExtractElementText(element);
+            string? valuePatternValue = null;
+            double? rangeValue = null;
+            double? rangeMinimum = null;
+            double? rangeMaximum = null;
+
+            try
+            {
+                if (element.TryGetCurrentPattern(ValuePattern.Pattern, out object? valueObj) && valueObj is ValuePattern valuePattern)
+                {
+                    valuePatternValue = valuePattern.Current.Value;
+                }
+            }
+            catch
+            {
+                // Ignore ValuePattern read failures.
+            }
+
+            try
+            {
+                if (element.TryGetCurrentPattern(RangeValuePattern.Pattern, out object? rangeObj) && rangeObj is RangeValuePattern rangePattern)
+                {
+                    RangeValuePattern.RangeValuePatternInformation rangeInfo = rangePattern.Current;
+                    rangeValue = rangeInfo.Value;
+                    rangeMinimum = rangeInfo.Minimum;
+                    rangeMaximum = rangeInfo.Maximum;
+                }
+            }
+            catch
+            {
+                // Ignore RangeValuePattern read failures.
+            }
+
+            return new ControlValueResult(
+                string.IsNullOrWhiteSpace(displayValue) ? null : displayValue,
+                string.IsNullOrWhiteSpace(valuePatternValue) ? null : valuePatternValue,
+                rangeValue,
+                rangeMinimum,
+                rangeMaximum);
+        }
+
         public void PrintPatternDiagnostics(string key)
         {
             ButtonDescriptor descriptor;
@@ -858,6 +904,23 @@ namespace Cerberus.ButtonAutomation
             return null;
         }
 
+        private static readonly HashSet<string> ColumnWhitelist = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "#",
+            "BHA Depth (ft)",
+            "Pipe Fluid Density (lb/gal)",
+            "Force on End - RIH (lbf)",
+            "Force on End - POOH (lbf)",
+            "Lockup Depth (ft)",
+            "Min Surface Wt - RIH (lbf)",
+            "Min Pipe Tension - RIH (lbf)",
+            "Max Surface Wt - POOH (lbf)",
+            "Max Pipe Tension - POOH (lbf)",
+            "Max Pipe Stress - POOH (% of YS)",
+            "Max Surface Wt - RIH (lbf)",
+            "Min Surface Wt - POOH (lbf)"
+        };
+
         private TableExtractionResult ExtractTable(AutomationElement tableElement, ButtonDescriptor descriptor)
         {
             if (tableElement is null)
@@ -865,31 +928,66 @@ namespace Cerberus.ButtonAutomation
                 throw new ArgumentNullException(nameof(tableElement));
             }
 
+            var totalStopwatch = System.Diagnostics.Stopwatch.StartNew();
+
             if (TryExtractUsingGrid(tableElement, descriptor, out TableExtractionResult viaGrid))
             {
+                Console.WriteLine($"[TRACE] ExtractTable: GridPattern path succeeded in {totalStopwatch.ElapsedMilliseconds} ms");
                 return viaGrid;
             }
 
-            List<string> headers = CollectColumnHeaders(tableElement, columnCount: 0, descriptor);
-            List<List<string>> rows = ExtractRowsFromDescendants(tableElement, headers.Count);
+            Console.WriteLine($"[TRACE] ExtractTable: GridPattern not available after {totalStopwatch.ElapsedMilliseconds} ms");
 
-            int columnCount = Math.Max(rows.Count > 0 ? rows.Max(row => row.Count) : 0, headers.Count);
+            var headersStopwatch = System.Diagnostics.Stopwatch.StartNew();
+            List<string> allHeaders = CollectColumnHeaders(tableElement, columnCount: 0, descriptor);
+            Console.WriteLine($"[TRACE] ExtractTable: CollectColumnHeaders returned {allHeaders.Count} headers in {headersStopwatch.ElapsedMilliseconds} ms");
+
+            List<int> targetColumnIndices = new List<int>();
+            List<string> targetHeaders = new List<string>();
+            for (int i = 0; i < allHeaders.Count; i++)
+            {
+                string header = allHeaders[i];
+                if (ColumnWhitelist.Count == 0 || ColumnWhitelist.Contains(header))
+                {
+                    targetColumnIndices.Add(i);
+                    targetHeaders.Add(header);
+                }
+            }
+
+            if (targetColumnIndices.Count == 0)
+            {
+                for (int i = 0; i < allHeaders.Count; i++)
+                {
+                    targetColumnIndices.Add(i);
+                    targetHeaders.Add(allHeaders[i]);
+                }
+            }
+
+            var targetColumnIndexSet = new HashSet<int>(targetColumnIndices);
+            int targetColumnCount = targetHeaders.Count;
+
+            var rowsStopwatch = System.Diagnostics.Stopwatch.StartNew();
+            List<List<string>> rows = ExtractRowsFromDescendants(tableElement, targetColumnCount, targetColumnIndices, targetColumnIndexSet, out int fallbackRowCount);
+            Console.WriteLine($"[TRACE] ExtractTable: ExtractRowsFromDescendants returned {rows.Count} rows (fallback={fallbackRowCount}) in {rowsStopwatch.ElapsedMilliseconds} ms");
+
+            int columnCount = Math.Max(rows.Count > 0 ? rows.Max(row => row.Count) : 0, targetHeaders.Count);
             if (columnCount == 0)
             {
-                return new TableExtractionResult(headers, rows);
+                Console.WriteLine($"[TRACE] ExtractTable: completed with {rows.Count} rows and no columns in {totalStopwatch.ElapsedMilliseconds} ms");
+                return new TableExtractionResult(targetHeaders, rows);
             }
 
-            if (headers.Count == 0)
+            if (targetHeaders.Count == 0)
             {
-                headers = Enumerable.Range(0, columnCount).Select(static index => $"Column {index}").ToList();
+                targetHeaders = Enumerable.Range(0, columnCount).Select(static index => $"Column {index}").ToList();
             }
-            else if (headers.Count < columnCount)
+            else if (targetHeaders.Count < columnCount)
             {
-                headers.AddRange(Enumerable.Range(headers.Count, columnCount - headers.Count).Select(static index => $"Column {index}"));
+                targetHeaders.AddRange(Enumerable.Range(targetHeaders.Count, columnCount - targetHeaders.Count).Select(static index => $"Column {index}"));
             }
-            else if (headers.Count > columnCount)
+            else if (targetHeaders.Count > columnCount)
             {
-                headers = headers.Take(columnCount).ToList();
+                targetHeaders = targetHeaders.Take(columnCount).ToList();
             }
 
             for (int i = 0; i < rows.Count; i++)
@@ -905,7 +1003,8 @@ namespace Cerberus.ButtonAutomation
                 }
             }
 
-            return new TableExtractionResult(headers, rows);
+            Console.WriteLine($"[TRACE] ExtractTable: finalised {rows.Count} rows x {columnCount} columns in {totalStopwatch.ElapsedMilliseconds} ms");
+            return new TableExtractionResult(targetHeaders, rows);
         }
 
         private bool TryExtractUsingGrid(AutomationElement tableElement, ButtonDescriptor descriptor, out TableExtractionResult result)
@@ -1136,9 +1235,16 @@ namespace Cerberus.ButtonAutomation
             return null;
         }
 
-        private List<List<string>> ExtractRowsFromDescendants(AutomationElement tableElement, int expectedColumns)
+        private List<List<string>> ExtractRowsFromDescendants(
+            AutomationElement tableElement,
+            int expectedColumns,
+            IReadOnlyList<int> targetColumnIndices,
+            HashSet<int> targetColumnIndexSet,
+            out int fallbackRowCount)
         {
             var rows = new List<List<string>>();
+            fallbackRowCount = 0;
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
             try
             {
@@ -1147,7 +1253,11 @@ namespace Cerberus.ButtonAutomation
                 {
                     if (IsRowElement(currentRow))
                     {
-                        List<string> cells = ExtractRowCells(currentRow, expectedColumns);
+                        List<string> cells = ExtractRowCells(currentRow, expectedColumns, targetColumnIndices, targetColumnIndexSet, out bool usedFallback);
+                        if (usedFallback)
+                        {
+                            fallbackRowCount++;
+                        }
                         if (cells.Count > 0 && cells.Any(static cell => !IsEmptyCellValue(cell)))
                         {
                             rows.Add(cells);
@@ -1162,27 +1272,27 @@ namespace Cerberus.ButtonAutomation
                 // Ignore traversal failures; best-effort extraction only.
             }
 
+            stopwatch.Stop();
+            Console.WriteLine($"[TRACE] ExtractRowsFromDescendants: processed {rows.Count} rows with {fallbackRowCount} fallback extractions in {stopwatch.ElapsedMilliseconds} ms");
             return rows;
         }
 
-        private List<string> ExtractRowCells(AutomationElement rowElement, int expectedColumns)
-        {
-            var values = new List<string>();
+        private static bool _loggedRowStats = false;
 
-            try
+        private List<string> ExtractRowCells(
+            AutomationElement rowElement,
+            int expectedColumns,
+            IReadOnlyList<int> targetColumnIndices,
+            HashSet<int> targetColumnIndexSet,
+            out bool usedFallback)
+        {
+            List<string> values = CollectCellsViaTreeWalker(rowElement, expectedColumns, targetColumnIndices, targetColumnIndexSet, out bool reachedTarget);
+            usedFallback = false;
+
+            if (!reachedTarget && expectedColumns > 0)
             {
-                AutomationElementCollection candidates = rowElement.FindAll(TreeScope.Descendants, Condition.TrueCondition);
-                foreach (AutomationElement candidate in candidates)
-                {
-                    if (IsCellElement(candidate))
-                    {
-                        values.Add(ExtractElementText(candidate));
-                    }
-                }
-            }
-            catch
-            {
-                // Ignore per-row extraction failures.
+                usedFallback = true;
+                values = CollectCellsFromDescendants(rowElement, expectedColumns, targetColumnIndices, targetColumnIndexSet);
             }
 
             if (values.Count == 0)
@@ -1199,7 +1309,134 @@ namespace Cerberus.ButtonAutomation
                 values.AddRange(Enumerable.Repeat(string.Empty, expectedColumns - values.Count));
             }
 
+            if (!_loggedRowStats)
+            {
+                Console.WriteLine($"[TRACE] ExtractRowCells: collected {values.Count} values (expected {expectedColumns}), fallbackUsed={usedFallback}");
+                _loggedRowStats = true;
+            }
+
             return values;
+        }
+
+        private List<string> CollectCellsViaTreeWalker(
+            AutomationElement rowElement,
+            int expectedColumns,
+            IReadOnlyList<int> targetColumnIndices,
+            HashSet<int> targetColumnIndexSet,
+            out bool reachedTarget)
+        {
+            var valuesByColumn = new Dictionary<int, string>();
+            int currentColumnIndex = 0;
+            bool localReachedTarget = false;
+
+            try
+            {
+                void VisitChildren(AutomationElement parent, int depth)
+                {
+                    AutomationElement? child = TreeWalker.RawViewWalker.GetFirstChild(parent);
+                    while (child is not null)
+                    {
+                        if (IsCellElement(child))
+                        {
+                            int columnIndex = currentColumnIndex++;
+                            bool includeColumn = targetColumnIndices.Count == 0 || targetColumnIndexSet.Contains(columnIndex);
+                            if (includeColumn)
+                            {
+                                string text = ExtractElementText(child);
+                                if (!string.IsNullOrEmpty(text) || expectedColumns <= 0 || !valuesByColumn.ContainsKey(columnIndex))
+                                {
+                                    valuesByColumn[columnIndex] = text;
+                                }
+                            }
+
+                            if (expectedColumns > 0 && valuesByColumn.Count >= expectedColumns)
+                            {
+                                localReachedTarget = true;
+                                return;
+                            }
+                        }
+                        else if (depth < 3)
+                        {
+                            VisitChildren(child, depth + 1);
+                            if (expectedColumns > 0 && valuesByColumn.Count >= expectedColumns)
+                            {
+                                localReachedTarget = true;
+                                return;
+                            }
+                        }
+
+                        child = TreeWalker.RawViewWalker.GetNextSibling(child);
+                    }
+                }
+
+                VisitChildren(rowElement, depth: 0);
+            }
+            catch
+            {
+                // Ignore tree walker failures; fall back to broader search.
+            }
+
+            reachedTarget = localReachedTarget || (expectedColumns > 0 ? valuesByColumn.Count >= expectedColumns : valuesByColumn.Count > 0);
+            return ProjectRowValues(targetColumnIndices, valuesByColumn);
+        }
+
+        private List<string> CollectCellsFromDescendants(
+            AutomationElement rowElement,
+            int expectedColumns,
+            IReadOnlyList<int> targetColumnIndices,
+            HashSet<int> targetColumnIndexSet)
+        {
+            var valuesByColumn = new Dictionary<int, string>();
+            int columnIndex = 0;
+
+            try
+            {
+                AutomationElementCollection candidates = rowElement.FindAll(TreeScope.Descendants, Condition.TrueCondition);
+                foreach (AutomationElement candidate in candidates)
+                {
+                    if (IsCellElement(candidate))
+                    {
+                        bool includeColumn = targetColumnIndices.Count == 0 || targetColumnIndexSet.Contains(columnIndex);
+                        if (includeColumn)
+                        {
+                            string text = ExtractElementText(candidate);
+                            if (!string.IsNullOrEmpty(text) || expectedColumns <= 0 || !valuesByColumn.ContainsKey(columnIndex))
+                            {
+                                valuesByColumn[columnIndex] = text;
+                            }
+                        }
+                        columnIndex++;
+                        if (expectedColumns > 0 && valuesByColumn.Count >= expectedColumns)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore per-row extraction failures.
+            }
+
+            return ProjectRowValues(targetColumnIndices, valuesByColumn);
+        }
+
+        private List<string> ProjectRowValues(IReadOnlyList<int> targetColumnIndices, IDictionary<int, string> sourceValues)
+        {
+            var row = new List<string>(targetColumnIndices.Count);
+            foreach (int columnIndex in targetColumnIndices)
+            {
+                if (sourceValues.TryGetValue(columnIndex, out string? value))
+                {
+                    row.Add(value);
+                }
+                else
+                {
+                    row.Add(string.Empty);
+                }
+            }
+
+            return row;
         }
 
         private static bool IsRowElement(AutomationElement element)
@@ -2370,6 +2607,24 @@ namespace Cerberus.ButtonAutomation
         }
     }
 
+    internal sealed class ControlValueResult
+    {
+        public ControlValueResult(string? displayValue, string? valuePattern, double? rangeValue, double? rangeMinimum, double? rangeMaximum)
+        {
+            DisplayValue = displayValue;
+            ValuePattern = valuePattern;
+            RangeValue = rangeValue;
+            RangeMinimum = rangeMinimum;
+            RangeMaximum = rangeMaximum;
+        }
+
+        public string? DisplayValue { get; }
+        public string? ValuePattern { get; }
+        public double? RangeValue { get; }
+        public double? RangeMinimum { get; }
+        public double? RangeMaximum { get; }
+    }
+
     internal sealed class TableExtractionResult
     {
         public TableExtractionResult(IReadOnlyList<string> headers, IReadOnlyList<IReadOnlyList<string>> rows)
@@ -2510,6 +2765,20 @@ namespace Cerberus.ButtonAutomation
                     var collectRunner = new AutomationRunner(descriptors, windowRegex);
                     TableExtractionResult table = collectRunner.CollectTable(collectKey);
                     Console.WriteLine(JsonSerializer.Serialize(table));
+                    return 0;
+
+                case "value":
+                case "read":
+                case "get":
+                    if (arguments.Count == 0)
+                    {
+                        throw new InvalidOperationException("Missing button key for value command.");
+                    }
+
+                    string valueKey = arguments.Dequeue();
+                    var valueRunner = new AutomationRunner(descriptors, windowRegex);
+                    ControlValueResult valueResult = valueRunner.GetControlValue(valueKey);
+                    Console.WriteLine(JsonSerializer.Serialize(valueResult));
                     return 0;
 
                 default:

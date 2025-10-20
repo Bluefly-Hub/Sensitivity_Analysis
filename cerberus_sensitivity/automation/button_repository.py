@@ -9,6 +9,7 @@ import pandas as pd
 
 from .button_bridge_CSharp_to_py import (
     collect_table,
+    get_button_value,
     invoke_button,
     list_buttons,
     set_button_value,
@@ -70,6 +71,47 @@ def _ensure_parameters_tab(timeout: float = 90.0) -> None:
 def _ensure_outputs_tab(timeout: float = 90.0) -> None:
     Sensitivity_Setting_Outputs(timeout=timeout)
     time.sleep(0.1)
+
+
+def _parse_progress_value(payload: Mapping[str, Any]) -> float | None:
+    range_value = payload.get("RangeValue")
+    if range_value is not None:
+        try:
+            return float(range_value)
+        except (TypeError, ValueError):
+            pass
+
+    for key in ("ValuePattern", "DisplayValue"):
+        raw = payload.get(key)
+        if not isinstance(raw, str):
+            continue
+        match = re.search(r"([-+]?\d*\.?\d+)", raw)
+        if not match:
+            continue
+        try:
+            value = float(match.group(1))
+        except ValueError:
+            continue
+        if "%" in raw and value <= 100.0:
+            return value
+        if "%" not in raw and value <= 100.0:
+            return value
+    return None
+
+
+def Sensitivity_Progress_Status(timeout: float = 30.0) -> dict[str, Any]:
+    """Return raw progress bar metadata along with parsed percentage."""
+    payload = get_button_value("button30", timeout=timeout)
+    progress = _parse_progress_value(payload)
+    result = dict(payload)
+    result["Progress"] = progress
+    return result
+
+
+def Sensitivity_Progress(timeout: float = 30.0) -> float | None:
+    """Return the current progress percentage from the Sensitivity Analysis progress bar."""
+    status = Sensitivity_Progress_Status(timeout=timeout)
+    return status.get("Progress")
 
 
 def _coerce_numeric_columns(df: pd.DataFrame) -> pd.DataFrame:
