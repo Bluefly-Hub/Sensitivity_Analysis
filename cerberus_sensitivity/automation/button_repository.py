@@ -59,12 +59,12 @@ def Sensitivity_Setting_Parameters(timeout: float = 90.0):
 
 def _ensure_parameters_tab(timeout: float = 90.0) -> None:
     Sensitivity_Setting_Parameters(timeout=timeout)
-    time.sleep(0.1)
+    #time.sleep(0.1)
 
 
 def _ensure_outputs_tab(timeout: float = 90.0) -> None:
     Sensitivity_Setting_Outputs(timeout=timeout)
-    time.sleep(0.1)
+    #time.sleep(0.1)
 
 
 def _coerce_numeric_columns(df: pd.DataFrame) -> pd.DataFrame:

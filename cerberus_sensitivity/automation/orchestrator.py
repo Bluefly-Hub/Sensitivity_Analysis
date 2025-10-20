@@ -88,13 +88,15 @@ class CerberusOrchestrator:
             progress.done([row.__dict__ for row in rows], empty_outputs)
             return [row.__dict__ for row in rows], empty_outputs
 
+        rih_frames: List[pd.DataFrame] = []
+        pooh_frames: List[pd.DataFrame] = []
+        parameter_value_cache: Dict[str, Tuple[float, ...]] = {}
+
         progress.init(total_rows, template=template_name)
         _open_sensitivity_analysis()
         _load_template(template_name)
 
-        rih_frames: List[pd.DataFrame] = []
-        pooh_frames: List[pd.DataFrame] = []
-        parameter_value_cache: Dict[str, Tuple[float, ...]] = {}
+        current_mode: str | None = None
 
         for plan in run_plan:
             if cancel_event.is_set():
@@ -102,8 +104,10 @@ class CerberusOrchestrator:
             if start_index >= plan.end_offset:
                 continue
 
-            _configure_parameters_for_mode(plan.mode)
-            _configure_outputs_for_mode(plan.mode)
+            if plan.mode != current_mode:
+                _configure_parameters_for_mode(plan.mode)
+                _configure_outputs_for_mode(plan.mode)
+                current_mode = plan.mode
 
             _open_parameter_matrix()
             # BHA depth must be loaded first so subsequent parameters reference the correct slice
@@ -219,7 +223,7 @@ class CerberusOrchestrator:
 
 def _open_sensitivity_analysis() -> None:
     button_Sensitivity_Analysis()
-    time.sleep(0.3)
+    #time.sleep(0.3)
 
 
 def _load_template(template_name: str, timeout: float = 10.0) -> None:
@@ -229,9 +233,9 @@ def _load_template(template_name: str, timeout: float = 10.0) -> None:
         raise ValueError(f"Unsupported template '{template_name}'.")
 
     File_OpenTemplate(timeout=timeout)
-    time.sleep(0.2)
+    #time.sleep(0.2)
     selector(timeout=timeout)
-    time.sleep(0.5)
+    #time.sleep(0.5)
 
 
 def _configure_parameters_for_mode(mode: str) -> None:
@@ -246,7 +250,7 @@ def _configure_parameters_for_mode(mode: str) -> None:
     else:
         Parameters_RIH(checked=False)
         Parameters_POOH(checked=True)
-    time.sleep(0.2)
+    ##time.sleep(0.2)
 
 
 def _configure_outputs_for_mode(mode: str) -> None:
@@ -255,7 +259,7 @@ def _configure_outputs_for_mode(mode: str) -> None:
         raise ValueError(f"Unsupported mode '{mode}'.")
 
     Sensitivity_Setting_Outputs()
-    time.sleep(0.1)
+    #time.sleep(0.1)
 
     if normalized == RIH_MODE:
         Parameters_Minimum_Surface_Weight_During_RIH(checked=True)
@@ -267,17 +271,17 @@ def _configure_outputs_for_mode(mode: str) -> None:
         Parameters_Minimum_Surface_Weight_During_RIH(checked=False)
         Parameters_Maximum_Surface_Weight_During_POOH(checked=True)
         Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS(checked=True)
-    time.sleep(0.2)
+    #time.sleep(0.2)
 
 
 def _open_parameter_matrix() -> None:
     Parameter_Matrix_Wizard()
-    time.sleep(0.5)
+    #time.sleep(0.5)
 
 
 def _close_parameter_matrix() -> None:
     Sensitivity_Parameter_ok()
-    time.sleep(0.3)
+    #time.sleep(0.3)
 
 
 def _update_parameter_values(
@@ -301,19 +305,19 @@ def _update_parameter_values(
 
     selector = _resolve_parameter_selector(parameter_caption)
     selector()
-    time.sleep(0.2)
+    #time.sleep(0.2)
 
     if ensure_clear:
         _clear_value_list()
 
     for value in sequence:
         Parameter_Value_Editor_Set_Value(str(value))
-        time.sleep(0.05)
+        #time.sleep(0.05)
         Edit_cmdAdd()
-        time.sleep(0.05)
+        #time.sleep(0.05)
 
     Edit_cmdOK()
-    time.sleep(0.2)
+    #time.sleep(0.2)
 
     if cache is not None:
         cache[normalized_key] = sequence_tuple
@@ -333,19 +337,19 @@ def _clear_value_list(max_attempts: int = 1) -> None:
         attempts += 1
         try:
             Value_List_Item0()
-            time.sleep(0.05)
+            #time.sleep(0.05)
         except subprocess.CalledProcessError:
             break
         try:
             Edit_cmdDelete()
-            time.sleep(0.05)
+            #time.sleep(0.05)
         except subprocess.CalledProcessError:
             break
 
 
 def _recalc_and_collect_table(timeout: float = 120.0) -> pd.DataFrame:
     Sensitivity_Analysis_Calculate(timeout=timeout)
-    #time.sleep(1.0)
+    ##time.sleep(1.0)
     table = Sensitivity_Table(timeout=timeout)
     if table is None or table.empty:
         raise RuntimeError("Sensitivity table did not return any data.")
