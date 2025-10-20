@@ -10,6 +10,7 @@ using System.Text.Json;
 using System.Windows.Automation;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Accessibility;
 
 #nullable enable
 
@@ -514,6 +515,17 @@ namespace Cerberus.ButtonAutomation
         private string _mainWindowName = string.Empty;
         private string? _currentFileName;
 
+        private const int CHILDID_SELF = 0;
+        private const int LegacyChildFetchBatchSize = 64;
+        private const uint OBJID_CLIENT = 0xFFFFFFFC;
+        private static readonly Guid IID_IAccessible = new("618736E0-3C3D-11CF-810C-00AA00389B71");
+
+        [DllImport("oleacc.dll")]
+        private static extern int AccessibleChildren(IAccessible paccContainer, int iChildStart, int cChildren, [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] object[] rgvarChildren, out int pcObtained);
+
+        [DllImport("oleacc.dll")]
+        private static extern int AccessibleObjectFromWindow(IntPtr hwnd, uint dwObjectId, ref Guid riid, [MarshalAs(UnmanagedType.Interface)] out IAccessible ppvObject);
+
         public AutomationRunner(IReadOnlyDictionary<string, ButtonDescriptor> descriptors, string windowPattern)
         {
             _descriptors = descriptors;
@@ -922,8 +934,19 @@ namespace Cerberus.ButtonAutomation
             int targetColumnCount = targetHeaders.Count;
 
             var rowsStopwatch = System.Diagnostics.Stopwatch.StartNew();
-            List<List<string>> rows = ExtractRowsFromDescendants(tableElement, targetColumnCount, targetColumnIndices, targetColumnIndexSet, out int fallbackRowCount);
-            Console.WriteLine($"[TRACE] ExtractTable: ExtractRowsFromDescendants returned {rows.Count} rows (fallback={fallbackRowCount}) in {rowsStopwatch.ElapsedMilliseconds} ms");
+            List<List<string>> rows = ExtractRowsUsingLegacy(tableElement, targetColumnCount, targetColumnIndices, targetColumnIndexSet, out bool legacySucceeded);
+            int fallbackRowCount = 0;
+            if (legacySucceeded)
+            {
+                rowsStopwatch.Stop();
+                Console.WriteLine($"[TRACE] ExtractTable: LegacyIAccessible returned {rows.Count} rows in {rowsStopwatch.ElapsedMilliseconds} ms");
+            }
+            else
+            {
+                rows = ExtractRowsFromDescendants(tableElement, targetColumnCount, targetColumnIndices, targetColumnIndexSet, out fallbackRowCount);
+                rowsStopwatch.Stop();
+                Console.WriteLine($"[TRACE] ExtractTable: ExtractRowsFromDescendants returned {rows.Count} rows (fallback={fallbackRowCount}) in {rowsStopwatch.ElapsedMilliseconds} ms");
+            }
 
             int columnCount = Math.Max(rows.Count > 0 ? rows.Max(row => row.Count) : 0, targetHeaders.Count);
             if (columnCount == 0)
@@ -1190,6 +1213,153 @@ namespace Cerberus.ButtonAutomation
             return null;
         }
 
+        private List<List<string>> ExtractRowsUsingLegacy(
+            AutomationElement tableElement,
+            int expectedColumns,
+            IReadOnlyList<int> targetColumnIndices,
+            HashSet<int> targetColumnIndexSet,
+            out bool legacySucceeded)
+        {
+            legacySucceeded = false;
+            try
+            {
+                IAccessible? tableAccessible = TryGetAccessibleFromWindow(tableElement);
+                if (tableAccessible is null)
+                {
+                    tableAccessible = GetAccessibleFromLegacyPattern(tableElement);
+                }
+
+                if (tableAccessible is null)
+                {
+                    Console.WriteLine("[TRACE] ExtractRowsUsingLegacy: unable to resolve IAccessible.");
+                    return new List<List<string>>();
+                }
+
+                try
+                {
+                    try
+                    {
+                        Console.WriteLine($"[TRACE] ExtractRowsUsingLegacy: table accessible child count = {tableAccessible.accChildCount}");
+                    }
+                    catch
+                    {
+                        // Ignore child count diagnostics failures.
+                    }
+
+                    List<List<string>> rows = ExtractRowsFromLegacy(tableAccessible, expectedColumns, targetColumnIndices, targetColumnIndexSet);
+                    if (rows.Count > 0)
+                    {
+                        legacySucceeded = true;
+                    }
+                    else
+                    {
+                        Console.WriteLine("[TRACE] ExtractRowsUsingLegacy: no rows returned from legacy path.");
+                    }
+                    return rows;
+                }
+                finally
+                {
+                    try
+                    {
+                        Marshal.ReleaseComObject(tableAccessible);
+                    }
+                    catch
+                    {
+                        // Ignore release failures.
+                    }
+                }
+            }
+            catch
+            {
+                return new List<List<string>>();
+            }
+        }
+
+        private List<List<string>> ExtractRowsFromLegacy(
+            IAccessible tableAccessible,
+            int expectedColumns,
+            IReadOnlyList<int> targetColumnIndices,
+            HashSet<int> targetColumnIndexSet)
+        {
+            var rows = new List<List<string>>();
+            IReadOnlyList<object> children = GetAccessibleChildren(tableAccessible);
+            foreach (object child in children)
+            {
+                IAccessible? rowAccessible = ResolveAccessibleChild(tableAccessible, child);
+                if (rowAccessible is null)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    string rowName = NormalizeWhitespace(TryGetAccName(rowAccessible, CHILDID_SELF) ?? string.Empty);
+                    if (string.IsNullOrEmpty(rowName) || string.Equals(rowName, "Top Row", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (!IsLegacyRowName(rowName))
+                    {
+                        continue;
+                    }
+
+                    if (!_loggedLegacySummary)
+                    {
+                        int childCount = 0;
+                        try
+                        {
+                            childCount = rowAccessible.accChildCount;
+                        }
+                        catch
+                        {
+                            // Ignore diagnostics failure.
+                        }
+                        Console.WriteLine($"[TRACE] ExtractRowsFromLegacy: first row '{rowName}' reports {childCount} children.");
+                        _loggedLegacySummary = true;
+                    }
+
+                    Dictionary<int, string> valuesByColumn = CollectLegacyRowValues(rowAccessible, expectedColumns, targetColumnIndices, targetColumnIndexSet, out bool hasValue);
+                    if (!hasValue && expectedColumns > 0)
+                    {
+                        bool allEmpty = true;
+                        foreach (string value in valuesByColumn.Values)
+                        {
+                            if (!IsEmptyCellValue(value))
+                            {
+                                allEmpty = false;
+                                break;
+                            }
+                        }
+                        if (allEmpty)
+                        {
+                            continue;
+                        }
+                    }
+
+                    List<string> projected = ProjectRowValues(targetColumnIndices, valuesByColumn);
+                    if (projected.Count == 0 || projected.All(IsEmptyCellValue))
+                    {
+                        continue;
+                    }
+                    rows.Add(projected);
+                }
+                finally
+                {
+                    try
+                    {
+                        Marshal.ReleaseComObject(rowAccessible);
+                    }
+                    catch
+                    {
+                        // Ignore release failures.
+                    }
+                }
+            }
+
+            return rows;
+        }
+
         private List<List<string>> ExtractRowsFromDescendants(
             AutomationElement tableElement,
             int expectedColumns,
@@ -1232,6 +1402,279 @@ namespace Cerberus.ButtonAutomation
             return rows;
         }
 
+        private Dictionary<int, string> CollectLegacyRowValues(
+            IAccessible rowAccessible,
+            int expectedColumns,
+            IReadOnlyList<int> targetColumnIndices,
+            HashSet<int> targetColumnIndexSet,
+            out bool hasValue)
+        {
+            var valuesByColumn = new Dictionary<int, string>();
+            hasValue = false;
+
+            IReadOnlyList<object> cells = GetAccessibleChildren(rowAccessible);
+            int columnIndex = 0;
+            foreach (object cellObj in cells)
+            {
+                string text = ExtractAccessibleText(rowAccessible, cellObj, preferValue: true);
+                bool includeColumn = targetColumnIndices.Count == 0 || targetColumnIndexSet.Contains(columnIndex);
+                if (includeColumn)
+                {
+                    valuesByColumn[columnIndex] = text;
+                    if (!IsEmptyCellValue(text))
+                    {
+                        hasValue = true;
+                    }
+                }
+                columnIndex++;
+            }
+
+            if (targetColumnIndices.Count > 0)
+            {
+                foreach (int index in targetColumnIndices)
+                {
+                    if (!valuesByColumn.ContainsKey(index))
+                    {
+                        valuesByColumn[index] = string.Empty;
+                    }
+                }
+            }
+
+            return valuesByColumn;
+        }
+
+        private static IReadOnlyList<object> GetAccessibleChildren(IAccessible parent)
+        {
+            var results = new List<object>();
+            if (parent is null)
+            {
+                return results;
+            }
+
+            int childCount;
+            try
+            {
+                childCount = parent.accChildCount;
+            }
+            catch
+            {
+                return results;
+            }
+
+            if (childCount <= 0)
+            {
+                return results;
+            }
+
+            int fetched = 0;
+            while (fetched < childCount)
+            {
+                int request = Math.Min(LegacyChildFetchBatchSize, childCount - fetched);
+                var buffer = new object[request];
+                int hr = AccessibleChildren(parent, fetched, request, buffer, out int obtained);
+                if (hr != 0 || obtained <= 0)
+                {
+                    break;
+                }
+
+                for (int i = 0; i < obtained; i++)
+                {
+                    object entry = buffer[i];
+                    if (entry is not null)
+                    {
+                        results.Add(entry);
+                    }
+                }
+
+                fetched += obtained;
+                if (obtained < request)
+                {
+                    break;
+                }
+            }
+
+            return results;
+        }
+
+        private static IAccessible? ResolveAccessibleChild(IAccessible parent, object child)
+        {
+            if (child is IAccessible accessible)
+            {
+                return accessible;
+            }
+
+            if (child is int childId && childId != CHILDID_SELF)
+            {
+                try
+                {
+                    object resolved = parent.get_accChild(childId);
+                    if (resolved is IAccessible resolvedAccessible)
+                    {
+                        return resolvedAccessible;
+                    }
+                }
+                catch
+                {
+                    // Ignore individual child resolution failures.
+                }
+            }
+
+            return null;
+        }
+
+        private IAccessible? TryGetAccessibleFromWindow(AutomationElement element)
+        {
+            try
+            {
+                int handle = element.Current.NativeWindowHandle;
+                if (handle == 0)
+                {
+                    return null;
+                }
+
+                Guid iid = IID_IAccessible;
+                int hr = AccessibleObjectFromWindow(new IntPtr(handle), OBJID_CLIENT, ref iid, out IAccessible accessible);
+                if (hr >= 0)
+                {
+                    return accessible;
+                }
+            }
+            catch
+            {
+                // Ignore native window handle failures.
+            }
+
+            return null;
+        }
+
+        private IAccessible? GetAccessibleFromLegacyPattern(AutomationElement element)
+        {
+            const int LegacyPatternId = 10018; // UIA_LegacyIAccessiblePatternId
+            try
+            {
+                AutomationPattern? legacyPattern = AutomationPattern.LookupById(LegacyPatternId);
+                if (legacyPattern is null)
+                {
+                    return null;
+                }
+
+                if (!element.TryGetCurrentPattern(legacyPattern, out object? patternObj) || patternObj is null)
+                {
+                    return null;
+                }
+
+                object? current = patternObj.GetType().GetProperty("Current")?.GetValue(patternObj);
+                object? native = current?.GetType().GetProperty("NativeObject")?.GetValue(current);
+                return native as IAccessible;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static bool IsLegacyRowName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                return false;
+            }
+
+            if (name.StartsWith("Row", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return int.TryParse(name, NumberStyles.Integer, CultureInfo.InvariantCulture, out _);
+        }
+
+        private static string? TryGetAccName(IAccessible accessible, int childId)
+        {
+            try
+            {
+                return accessible.get_accName(childId);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static string? TryGetAccValue(IAccessible accessible, int childId)
+        {
+            try
+            {
+                return accessible.get_accValue(childId);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private string ExtractAccessibleText(IAccessible parent, object child, bool preferValue)
+        {
+            string? value = null;
+            string? name = null;
+
+            if (child is IAccessible accessible)
+            {
+                try
+                {
+                    if (preferValue)
+                    {
+                        value = TryGetAccValue(accessible, CHILDID_SELF);
+                        if (string.IsNullOrEmpty(value))
+                        {
+                            name = TryGetAccName(accessible, CHILDID_SELF);
+                        }
+                    }
+                    else
+                    {
+                        name = TryGetAccName(accessible, CHILDID_SELF);
+                        if (string.IsNullOrEmpty(name))
+                        {
+                            value = TryGetAccValue(accessible, CHILDID_SELF);
+                        }
+                    }
+                }
+                finally
+                {
+                    try
+                    {
+                        Marshal.ReleaseComObject(accessible);
+                    }
+                    catch
+                    {
+                        // Ignore release failures.
+                    }
+                }
+            }
+            else if (child is int childId)
+            {
+                if (preferValue)
+                {
+                    value = TryGetAccValue(parent, childId);
+                    if (string.IsNullOrEmpty(value))
+                    {
+                        name = TryGetAccName(parent, childId);
+                    }
+                }
+                else
+                {
+                    name = TryGetAccName(parent, childId);
+                    if (string.IsNullOrEmpty(name))
+                    {
+                        value = TryGetAccValue(parent, childId);
+                    }
+                }
+            }
+
+            string text = preferValue ? (value ?? name ?? string.Empty) : (name ?? value ?? string.Empty);
+            return NormalizeWhitespace(text);
+        }
+
+        private static bool _loggedLegacySummary = false;
         private static bool _loggedRowStats = false;
 
         private List<string> ExtractRowCells(
