@@ -10,7 +10,7 @@ from typing import Any, Dict, List
 
 import pandas as pd
 
-from ..automation.progress import ProgressReporter
+from ..automation.Automation import ProgressReporter
 from ..engine import CerberusEngine
 
 

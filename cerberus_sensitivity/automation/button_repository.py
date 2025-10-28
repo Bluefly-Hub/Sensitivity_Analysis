@@ -2,10 +2,43 @@ from __future__ import annotations
 
 import re
 import time
+from ctypes import windll, wintypes
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping, Optional, Sequence
+import warnings
 
 import pandas as pd
+
+from pywinauto import Application, timings
+from pywinauto.remote_memory_block import AccessDenied
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as InvokeTimeout
+
+warnings.filterwarnings(
+    "ignore",
+    message="32-bit application should be automated using 32-bit Python",
+    category=UserWarning,
+    module="pywinauto.application",
+)
+
+timings.Timings.window_find_timeout = 0.5
+timings.Timings.window_find_retry = 0.05
+timings.Timings.after_click_wait = 0.0
+
+_FIND_WINDOW_EX = windll.user32.FindWindowExW
+_FIND_WINDOW_EX.argtypes = [
+    wintypes.HWND,
+    wintypes.HWND,
+    wintypes.LPCWSTR,
+    wintypes.LPCWSTR,
+]
+_FIND_WINDOW_EX.restype = wintypes.HWND
+
+_IS_WINDOW = windll.user32.IsWindow
+
+_APP_UIA: Optional[Application] = None
+_APP_WIN32: Optional[Application] = None
+_MAIN_HANDLE: Optional[int] = None
+_VALUE_LIST_HANDLE: Optional[int] = None
 
 from .button_bridge_CSharp_to_py import collect_table, invoke_button, list_buttons, set_button_value
 
@@ -165,6 +198,16 @@ def Parameters_POOH(checked: bool | None = None, timeout: float = 90.0):
     return _set_checkbox_state("button6", checked, timeout=timeout)
 
 
+def Setup_POOH(timeout: float = 90.0):
+    """Ensure the application is configured for POOH batches."""
+    Parameters_POOH(checked=True, timeout=timeout)
+    Parameters_RIH(checked=False, timeout=timeout)
+    Parameters_Maximum_Surface_Weight_During_POOH(checked=True, timeout=timeout)
+    Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS(checked=True, timeout=timeout)
+    Parameters_Minimum_Surface_Weight_During_RIH(checked=False, timeout=timeout)
+
+
+
 def Parameters_Maximum_Surface_Weight_During_POOH(checked: bool | None = None, timeout: float = 90.0):
     """Toggle or set Maximum surface weight during POOH (button8)."""
     _ensure_outputs_tab(timeout=timeout)
@@ -287,3 +330,195 @@ def Sensitivity_Parameter_ok(timeout: float = 60.0):
 def list_defined_buttons(*, timeout: float = 30.0):
     return list_buttons(timeout=timeout)
 
+def invoke_with_timeout(ctrl, timeout=1.0):
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(ctrl.invoke)
+        try:
+            return future.result(timeout=timeout)
+        except InvokeTimeout:
+            raise TimeoutError(f"invoke() timed out after {timeout} s")
+
+
+
+def find_child_by_class(parent: int, class_name: str, automation_id: str, app_uia: Application) -> int:
+    child = _FIND_WINDOW_EX(parent, 0, class_name, None)
+    while child:
+        if app_uia.window(handle=child).element_info.automation_id == automation_id:
+            return child
+        child = _FIND_WINDOW_EX(parent, child, class_name, None)
+    raise RuntimeError(f"Unable to locate {automation_id}")
+
+
+def Populate_Value_List(values: Sequence[str]) -> None:
+    start = time.perf_counter()
+
+    app_uia = Application(backend="uia").connect(auto_id="frmOrpheus")
+    main_uia = app_uia.window(auto_id="frmOrpheus", control_type="Window")
+
+    app_win32 = Application(backend="win32").connect(process=app_uia.process)
+    main_win32 = app_win32.window(handle=main_uia.handle)
+
+    pnl_numeric = main_uia.child_window(auto_id="pnlNumeric", control_type="Pane")
+    panel_handle = pnl_numeric.handle
+
+    txt_handle = find_child_by_class(panel_handle, "WindowsForms10.EDIT.app.0.141b42a_r7_ad1", "txtVal", app_uia)
+    cmd_handle = find_child_by_class(panel_handle, "WindowsForms10.BUTTON.app.0.141b42a_r7_ad1", "cmdAdd", app_uia)
+
+    txt_val = app_win32.window(handle=txt_handle).wrapper_object()
+    cmd_add = app_win32.window(handle=cmd_handle).wrapper_object()
+
+    if not values:
+        raise ValueError("Populate_Value_List requires at least one value")
+
+    for value in (str(item) for item in values):
+        txt_val.set_text(value)
+        cmd_add.click()
+
+    print(f"Completed interaction loop in {time.perf_counter() - start:6.3f} s")
+
+
+def Clear_Value_List() -> None:
+    start = time.perf_counter()
+
+    # Connect to main app window via UIA
+    app_uia = Application(backend="uia").connect(auto_id="frmOrpheus")
+    main_uia = app_uia.window(auto_id="frmOrpheus", control_type="Window")
+
+    # Attach Win32 backend for same process
+    app_win32 = Application(backend="win32").connect(process=app_uia.process)
+    value_list_uia = main_uia.child_window(auto_id="lstValues", control_type="List")
+
+    # Locate list control and wrap for Win32 ops
+    value_list = app_win32.window(handle=value_list_uia.handle).wrapper_object()
+
+    # Locate numeric panel container
+    pnl_numeric = main_uia.child_window(auto_id="pnlNumeric", control_type="Pane")
+    panel_handle = pnl_numeric.handle
+
+    # Find and wrap Delete button inside panel
+    cmdDelete_handle = find_child_by_class(panel_handle, "WindowsForms10.BUTTON.app.0.141b42a_r7_ad1", "cmdDelete", app_uia)
+    cmdDelete = app_win32.window(handle=cmdDelete_handle).wrapper_object()
+
+
+    list_length = len(value_list.item_texts())
+
+    for i in range(list_length, 0, -1):
+        value_list.click()
+        cmdDelete.click()
+
+
+    #print(f"{action} in {time.perf_counter() - start:6.3f} s")
+
+
+def Example():
+    start = time.perf_counter()
+
+    # Connect to main app window via UIA
+    app_uia = Application(backend="uia").connect(auto_id="frmOrpheus")
+    main_uia = app_uia.window(auto_id="frmOrpheus", control_type="Window")
+
+    # Attach Win32 backend for same process
+    app_win32 = Application(backend="win32").connect(process=app_uia.process)
+
+    # Locate Pane button is in
+    pnl_numeric = main_uia.child_window(auto_id="pnlNumeric", control_type="Pane")
+    panel_handle = pnl_numeric.handle
+
+    # Find and wrap button inside panel
+    cmdDelete_handle = find_child_by_class(panel_handle, "WindowsForms10.BUTTON.app.0.141b42a_r7_ad1", "cmdDelete", app_uia)
+    cmdDelete = app_win32.window(handle=cmdDelete_handle).wrapper_object()
+
+    #Click Button
+    cmdDelete.click()
+
+    print(f"Example in {time.perf_counter() - start:6.3f} s")
+
+def Open_Sensitivity_Analysis():
+    start = time.perf_counter()
+
+    # Connect to main app window via UIA
+    app_uia = Application(backend="uia").connect(auto_id="frmOrpheus")
+    main_uia = app_uia.window(auto_id="frmOrpheus", control_type="Window")
+
+    # Attach Win32 backend for same process
+    app_win32 = Application(backend="win32").connect(process=app_uia.process)
+
+    #main_uia.print_control_identifiers()
+
+    # Locate Pane button is in
+    pnl_menu = main_uia.child_window(title="Tools", control_type="MenuItem")
+    Sensitivity_Analysis= pnl_menu.child_window(title="Sensitivity Analysis...", control_type="MenuItem")
+
+    #Click Button
+    pnl_menu.invoke()
+    Sensitivity_Analysis.click_input()
+
+    print(f"Open_Sensitivity_Analysis in {time.perf_counter() - start:6.3f} s")
+
+
+def Open_Template():
+    start = time.perf_counter()
+
+    # Connect to main app window via UIA
+    app_uia = Application(backend="uia").connect(auto_id="frmOrpheus")
+    main_uia = app_uia.window(auto_id="frmOrpheus", control_type="Window")
+
+    #main_uia.print_control_identifiers()
+
+    sensitivity_window = main_uia.child_window(auto_id="frmOrphSensitivity", control_type="Window")
+    menu_bar = sensitivity_window.child_window(auto_id="MenuStrip1", control_type="MenuBar")
+    file_menu = menu_bar.child_window(title="File", control_type="MenuItem").wrapper_object()
+    file_menu.expand()
+
+    deadline = time.perf_counter() + .10
+    while time.perf_counter() < deadline:
+        for child in file_menu.children():
+            if child.element_info.name == "Open Template":
+                child.click_input()
+                print(f"Open_Template in {time.perf_counter() - start:6.3f} s")
+                return
+        #time.sleep(0.01)
+
+    raise RuntimeError("Timeout locating 'Open Template' menu item")
+
+
+def Set_Parameters_RIH():
+    start = time.perf_counter()
+
+    # Connect to main app window via UIA
+    app_uia = Application(backend="uia").connect(auto_id="frmOrpheus")
+    main_uia = app_uia.window(auto_id="frmOrpheus", control_type="Window")
+
+    # Attach Win32 backend for same process
+    app_win32 = Application(backend="win32").connect(process=app_uia.process)
+
+    # Locate BHA depth button
+    BHA_depth_numeric = main_uia.child_window(auto_id="chkDepth", title="BHA depth")
+    BHA_depth_handle = BHA_depth_numeric.handle
+    BHA_depth_Button = app_win32.window(handle=BHA_depth_handle).wrapper_object()
+
+    # Locate Friction Factor Button
+    friction_factor_numeric = main_uia.child_window(auto_id="chkFriction", title="Friction factor")
+    friction_factor_handle = friction_factor_numeric.handle
+    friction_factor_Button = app_win32.window(handle=friction_factor_handle).wrapper_object()
+
+    # Locate Pipe Fluid Density Button
+    Pipe_Fluid_Density = main_uia.child_window(auto_id="chkPipeFluidDens", title="Pipe fluid density")
+    Pipe_Fluid_Density_handle = Pipe_Fluid_Density.handle
+    Pipe_Fluid_Density_Button = app_win32.window(handle=Pipe_Fluid_Density_handle).wrapper_object()
+
+    # Locate FOE RIH Button
+    FOE_RIH = main_uia.child_window(auto_id="chkFOE", title="RIH")
+    FOE_RIH_handle = FOE_RIH.handle
+    FOE_RIH_Button = app_win32.window(handle=FOE_RIH_handle).wrapper_object()
+
+
+    #Click Button
+    BHA_depth_Button.click()
+    friction_factor_Button.click()
+    Pipe_Fluid_Density_Button.click()
+    FOE_RIH_Button.click()
+    Parameters_Minimum_Surface_Weight_During_RIH()
+
+
+    print(f"Set_Parameters_RIH in {time.perf_counter() - start:6.3f} s")
