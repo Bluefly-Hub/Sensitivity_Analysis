@@ -109,9 +109,27 @@ class CerberusOrchestrator:
                 _configure_outputs_for_mode(plan.mode)
                 current_mode = plan.mode
 
+            pipe_density_count = len(inputs.pipe_fluid_densities)
+            if plan.mode == RIH_MODE:
+                foe_count = len(inputs.stretch_foe_rih)
+            else:
+                foe_count = len(inputs.stretch_foe_pooh)
+            combos_per_depth = pipe_density_count * foe_count
+            if combos_per_depth <= 0:
+                # Nothing to evaluate for this plan
+                continue
+
+            previously_completed = max(0, min(start_index, plan.end_offset) - plan.offset)
+            depth_skip = min(len(plan.depth_values), previously_completed // combos_per_depth)
+            remaining_depths = plan.depth_values[depth_skip:]
+            if not remaining_depths:
+                continue
+
+            base_offset = plan.offset + depth_skip * combos_per_depth
+
             _open_parameter_matrix()
             # BHA depth must be loaded first so subsequent parameters reference the correct slice
-            _update_parameter_values("BHA Depth", plan.depth_values, cache=parameter_value_cache)
+            _update_parameter_values("BHA Depth", remaining_depths, cache=parameter_value_cache)
             if plan.include_pipe_density:
                 _update_parameter_values(
                     "Pipe Fluid Density", inputs.pipe_fluid_densities, cache=parameter_value_cache
@@ -127,7 +145,7 @@ class CerberusOrchestrator:
             table_rows = table_df.to_dict(orient="records")
             new_rows_for_mode: List[Dict[str, Any]] = []
             for idx, row in enumerate(table_rows):
-                global_index = plan.offset + idx
+                global_index = base_offset + idx
                 if global_index < start_index:
                     continue
                 if cancel_event.is_set():
@@ -246,9 +264,9 @@ def _configure_parameters_for_mode(mode: str) -> None:
     Parameters_Pipe_fluid_density(checked=True)
     if normalized == RIH_MODE:
         Parameters_RIH(checked=True)
-        Parameters_POOH(checked=False)
+        #Parameters_POOH(checked=False)
     else:
-        Parameters_RIH(checked=False)
+        #Parameters_RIH(checked=False)
         Parameters_POOH(checked=True)
     ##time.sleep(0.2)
 
@@ -331,20 +349,20 @@ def _resolve_parameter_selector(caption: str):
     return selector
 
 
-def _clear_value_list(max_attempts: int = 1) -> None:
+def _clear_value_list(max_attempts: int = 100) -> None:
     attempts = 0
     while attempts < max_attempts:
-        attempts += 1
         try:
             Value_List_Item0()
-            #time.sleep(0.05)
+            time.sleep(0.05)
         except subprocess.CalledProcessError:
             break
         try:
             Edit_cmdDelete()
-            #time.sleep(0.05)
+            time.sleep(0.05)
         except subprocess.CalledProcessError:
             break
+        attempts += 1
 
 
 def _recalc_and_collect_table(timeout: float = 120.0) -> pd.DataFrame:
