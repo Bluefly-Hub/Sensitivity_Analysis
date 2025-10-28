@@ -1,0 +1,21 @@
+# Virtual environments
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+
+# Build outputs
+bin/
+obj/
+build/
+dist/
+
+# Distribution metadata
+*.egg-info/
+pip-wheel-metadata/
+
+# Logs
+*.log
