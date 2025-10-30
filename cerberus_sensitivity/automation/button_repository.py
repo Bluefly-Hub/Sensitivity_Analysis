@@ -270,12 +270,12 @@ def Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS(
 
 def Parameter_Matrix_Wizard(timeout: float = 90.0):
     """Open the Parameter Matrix Wizard button (button10)."""
-    return invoke_button("button10", timeout=timeout)
+    invoke_button("button10", timeout=timeout)
+    return time.sleep(1.0)
 
 
 def Parameter_Matrix_BHA_Depth_Row0(timeout: float = 60.0):
     """Select the Parameter Matrix grid cell for BHA Depth row 0 (button11)."""
-    _wait_for_parameter_matrix_window(timeout=min(timeout, 15.0))
     return invoke_button("button11", timeout=timeout)
 
 
@@ -301,18 +301,15 @@ def Edit_cmdOK(timeout: float = 60.0):
 
 def Parameter_Matrix_PFD_Row0(timeout: float = 60.0):
     """Select the Parameter Matrix grid cell for PFD row 0 (button17)."""
-    _wait_for_parameter_matrix_window(timeout=min(timeout, 15.0))
     return invoke_button("button17", timeout=timeout)
 
 
 def Parameter_Matrix_FOE_POOH_Row0(timeout: float = 60.0):
     """Select the Parameter Matrix grid cell for FOE row 0 (button19)."""
-    _wait_for_parameter_matrix_window(timeout=min(timeout, 15.0))
     return invoke_button("button19", timeout=timeout)
 
 def Parameter_Matrix_FOE_RIH_Row0(timeout: float = 60.0):
     """Select the Parameter Matrix grid cell for FOE row 0 (button28)."""
-    _wait_for_parameter_matrix_window(timeout=min(timeout, 15.0))
     return invoke_button("button28", timeout=timeout)
 
 
