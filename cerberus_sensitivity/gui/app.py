@@ -7,6 +7,8 @@ import threading
 import tkinter as tk
 from tkinter import messagebox, ttk
 from typing import Any, Dict, List
+from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
 
@@ -58,6 +60,9 @@ class CerberusApp(tk.Tk):
         self.title("Sensitivity Runner")
         self.geometry("1200x720")
 
+        self.log_path = Path(__file__).resolve().parents[2] / "logs" / "automation_errors.log"
+        self.log_path.parent.mkdir(parents=True, exist_ok=True)
+
         self.engine = CerberusEngine()
         self.event_queue: queue.Queue = queue.Queue()
         self.progress = ProgressReporter(self._enqueue_event)
@@ -75,6 +80,9 @@ class CerberusApp(tk.Tk):
         self.pooh_df = pd.DataFrame()
         self._rih_columns: List[str] = []
         self._pooh_columns: List[str] = []
+        self._progress_rows: Dict[str, List[Dict[str, Any]]] = {MODE_RIH: [], MODE_POOH: []}
+        self._progress_columns: Dict[str, List[str]] = {MODE_RIH: [], MODE_POOH: []}
+        self._processed_counts: Dict[str, int] = {MODE_RIH: 0, MODE_POOH: 0}
 
         # Step 2: UI widget placeholders
         self.input_tree: ttk.Treeview
@@ -299,6 +307,14 @@ class CerberusApp(tk.Tk):
                     status += f" | Template: {template}"
                 self.status_var.set(status)
                 self._set_controls_enabled(False)
+                for mode in (MODE_RIH, MODE_POOH):
+                    self._progress_rows[mode].clear()
+                    self._progress_columns[mode].clear()
+                    self._processed_counts[mode] = 0
+                    tree = self.pooh_tree if mode == MODE_POOH else self.rih_tree
+                    for item in tree.get_children():
+                        tree.delete(item)
+                    tree.configure(columns=())
             elif event == "row":
                 self._handle_row_event(payload)
             elif event == "done":
@@ -311,15 +327,24 @@ class CerberusApp(tk.Tk):
         mode = (payload.get("mode") or MODE_RIH).upper()
         row_data = dict(payload)
         row_data.pop("mode", None)
-        target_rows, tree, columns = self._resolve_mode_targets(mode)
-        target_rows.append(row_data)
-        if not columns:
-            columns.extend(row_data.keys())
-            tree.configure(columns=columns)
-            for col in columns:
-                tree.heading(col, text=col)
-                tree.column(col, width=160, anchor=tk.CENTER)
-        values = [row_data.get(col, "") for col in columns]
+        self._processed_counts[mode] = self._processed_counts.get(mode, 0) + 1
+
+        progress_rows = self._progress_rows[mode]
+        progress_columns = self._progress_columns[mode]
+        tree = self.pooh_tree if mode == MODE_POOH else self.rih_tree
+
+        progress_rows.append(row_data)
+        if not progress_columns:
+            progress_columns.extend(row_data.keys())
+        else:
+            for key in row_data.keys():
+                if key not in progress_columns:
+                    progress_columns.append(key)
+        tree.configure(columns=progress_columns)
+        for col in progress_columns:
+            tree.heading(col, text=col)
+            tree.column(col, width=160, anchor=tk.CENTER)
+        values = [row_data.get(col, "") for col in progress_columns]
         tree.insert("", tk.END, values=values)
         processed = self._total_processed_rows()
         message = (
@@ -374,6 +399,8 @@ class CerberusApp(tk.Tk):
                 columns.extend(incoming[0].keys())
             else:
                 columns.clear()
+            self._progress_rows[normalized].clear()
+            self._progress_columns[normalized].clear()
             updated_modes.append(normalized)
 
         self.rih_df = pd.DataFrame(self.rih_rows)
@@ -387,10 +414,22 @@ class CerberusApp(tk.Tk):
     def _handle_error(self, message: str) -> None:
         self.status_var.set("Error")
         self._set_controls_enabled(True)
+        self._log_error(message)
         messagebox.showerror("Automation Error", message)
         self.cancel_event.clear()
         self.worker_thread = None
         self._keep_awake = None
+
+    def _log_error(self, message: str) -> None:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        entry = f"[{timestamp}] {message.strip()}\n"
+        try:
+            with self.log_path.open("a", encoding="utf-8") as log_file:
+                log_file.write(entry)
+                log_file.write("\n")
+        except Exception:
+            # Logging should never interrupt the UI flow.
+            pass
 
     def _start_worker(self, start_index: int) -> None:
         if self.worker_thread and self.worker_thread.is_alive():
@@ -435,8 +474,12 @@ class CerberusApp(tk.Tk):
         if df.empty:
             messagebox.showinfo("Copy Results", f"No {mode} results to copy yet.")
             return
+        drop_columns = [col for col in ("mode", "batch_index") if col in df.columns]
+        export_df = df.drop(columns=drop_columns, errors="ignore")
+        export_df = export_df.fillna("")
+        export_df = export_df.astype(str)
         buffer = io.StringIO()
-        df.to_csv(buffer, sep="\t", index=False)
+        export_df.to_csv(buffer, sep="\t", index=False, lineterminator="\n")
         self.clipboard_clear()
         self.clipboard_append(buffer.getvalue())
         messagebox.showinfo("Copy Results", f"{mode} results copied to clipboard.")
@@ -448,7 +491,7 @@ class CerberusApp(tk.Tk):
         return self.rih_rows, self.rih_tree, self._rih_columns
 
     def _total_processed_rows(self) -> int:
-        return len(self.rih_rows) + len(self.pooh_rows)
+        return sum(self._processed_counts.values())
 
     def _clear_results(self) -> None:
         self.rih_rows.clear()
@@ -457,6 +500,10 @@ class CerberusApp(tk.Tk):
         self.pooh_df = pd.DataFrame()
         self._rih_columns.clear()
         self._pooh_columns.clear()
+        for mode in (MODE_RIH, MODE_POOH):
+            self._progress_rows[mode].clear()
+            self._progress_columns[mode].clear()
+            self._processed_counts[mode] = 0
         for tree in (self.rih_tree, self.pooh_tree):
             for item in tree.get_children():
                 tree.delete(item)

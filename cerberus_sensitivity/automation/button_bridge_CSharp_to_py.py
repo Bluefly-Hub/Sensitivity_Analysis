@@ -3,7 +3,9 @@ from __future__ import annotations
 import json
 import subprocess
 from pathlib import Path
-from typing import Mapping, Sequence
+from subprocess import CalledProcessError, TimeoutExpired
+import time
+from typing import Mapping, Sequence, NoReturn
 
 
 def _default_project_root() -> Path:
@@ -19,6 +21,75 @@ def _prepare_dump_path(dump_path: str | Path | None) -> Path | None:
         return None
     path_obj = Path(dump_path)
     return path_obj if path_obj.is_absolute() else (Path.cwd() / path_obj).resolve()
+
+
+def _run_automation_command(
+    args: list[str],
+    *,
+    action: str,
+    button_key: str,
+    timeout: float,
+    capture_output: bool,
+    max_attempts: int = 2,
+) -> subprocess.CompletedProcess[str]:
+    attempt = 0
+    while True:
+        try:
+            return subprocess.run(
+                args,
+                check=True,
+                timeout=timeout,
+                text=True,
+                capture_output=capture_output,
+            )
+        except (CalledProcessError, TimeoutExpired) as exc:
+            attempt += 1
+            if attempt >= max_attempts:
+                _raise_subprocess_error(action, button_key, exc)
+            else:
+                wait = min(2.0, 0.5 * attempt)
+                print(f"[automation] {action} '{button_key}' failed (attempt {attempt}); retrying in {wait}s...")
+                time.sleep(wait)
+
+
+def _raise_subprocess_error(action: str, button_key: str, exc: Exception) -> NoReturn:
+    if isinstance(exc, TimeoutExpired):
+        timeout = exc.timeout if exc.timeout is not None else "unknown"
+        stdout = getattr(exc, "output", "") or getattr(exc, "stdout", "") or ""
+        stderr = getattr(exc, "stderr", "") or ""
+        base_message = f"Timed out trying to {action} '{button_key}' after {timeout} seconds."
+    elif isinstance(exc, CalledProcessError):
+        stdout = exc.stdout or ""
+        stderr = exc.stderr or ""
+        base_message = (
+            f"Failed to {action} '{button_key}' (exit code {exc.returncode})."
+        )
+    else:
+        stdout = stderr = ""
+        base_message = f"Error while attempting to {action} '{button_key}': {exc}"
+
+    def _format(value: str) -> str:
+        return value.strip() if isinstance(value, str) else ""
+
+    stdout_text = _format(stdout)
+    stderr_text = _format(stderr)
+
+    details_parts: list[str] = []
+    if stdout_text:
+        details_parts.append(f"stdout:\n{stdout_text}")
+    if stderr_text:
+        details_parts.append(f"stderr:\n{stderr_text}")
+
+    cmd = getattr(exc, "cmd", None)
+    if cmd:
+        if isinstance(cmd, (list, tuple)):
+            cmd_text = subprocess.list2cmdline([str(part) for part in cmd])
+        else:
+            cmd_text = str(cmd)
+        details_parts.insert(0, f"Command: {cmd_text}")
+
+    details = "\n\n".join(details_parts) if details_parts else "No additional output captured."
+    raise RuntimeError(f"{base_message}\n{details}") from exc
 
 
 def invoke_button(
@@ -44,11 +115,11 @@ def invoke_button(
         args.extend(["--window-regex", window_regex])
     args.extend(["invoke", button_key])
 
-    return subprocess.run(
+    return _run_automation_command(
         args,
-        check=True,
+        action="invoke",
+        button_key=button_key,
         timeout=timeout,
-        text=True,
         capture_output=capture_output,
     )
 
@@ -77,11 +148,11 @@ def set_button_value(
         args.extend(["--window-regex", window_regex])
     args.extend(["set", button_key, str(value)])
 
-    return subprocess.run(
+    return _run_automation_command(
         args,
-        check=True,
+        action="set value on",
+        button_key=button_key,
         timeout=timeout,
-        text=True,
         capture_output=capture_output,
     )
 
@@ -108,11 +179,11 @@ def collect_table(
         args.extend(["--window-regex", window_regex])
     args.extend(["collect", button_key])
 
-    completed = subprocess.run(
+    completed = _run_automation_command(
         args,
-        check=True,
+        action="collect table for",
+        button_key=button_key,
         timeout=timeout,
-        text=True,
         capture_output=True,
     )
 

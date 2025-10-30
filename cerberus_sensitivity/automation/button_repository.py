@@ -268,10 +268,10 @@ def Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS(
     return _set_checkbox_state("button9", checked, timeout=timeout)
 
 
-def Parameter_Matrix_Wizard(timeout: float = 90.0):
+def Parameter_Matrix_Wizard_Old(timeout: float = 90.0):
     """Open the Parameter Matrix Wizard button (button10)."""
     invoke_button("button10", timeout=timeout)
-    return time.sleep(1.0)
+    return time.sleep(2.0)
 
 
 def Parameter_Matrix_BHA_Depth_Row0(timeout: float = 60.0):
@@ -342,8 +342,12 @@ def Sensitivity_Table(timeout: float = 90.0):
 
     df = df.loc[:, df.apply(lambda col: col.astype(str).str.strip().ne("").any())]
 
+    def _is_generic(name: object) -> bool:
+        text = str(name or "").strip().lower()
+        return text == "" or text == "#" or text.startswith("column")
+
     dump_headers = _headers_from_dump("button25") or _headers_from_dump("button24")
-    if dump_headers:
+    if dump_headers and all(_is_generic(column) for column in df.columns):
         cleaned_headers = [header for header in dump_headers if header != "#"]
         target_headers = cleaned_headers[: len(df.columns)]
         if len(target_headers) == len(df.columns):
@@ -453,7 +457,7 @@ def Clear_Value_List() -> None:
     #print(f"{action} in {time.perf_counter() - start:6.3f} s")
 
 
-def Example():
+def Parameter_Matrix_Wizard():
     start = time.perf_counter()
 
     # Connect to main app window via UIA
@@ -464,15 +468,16 @@ def Example():
     app_win32 = Application(backend="win32").connect(process=app_uia.process)
 
     # Locate Pane button is in
-    pnl_numeric = main_uia.child_window(auto_id="pnlNumeric", control_type="Pane")
-    panel_handle = pnl_numeric.handle
+    sensitivity_window = main_uia.child_window(auto_id="frmOrphSensitivity", control_type="Window")
+    panel_handle = sensitivity_window.child_window(auto_id="cmdMatrix")
+    panel_handle = panel_handle.handle
 
     # Find and wrap button inside panel
-    cmdDelete_handle = find_child_by_class(panel_handle, "WindowsForms10.BUTTON.app.0.141b42a_r7_ad1", "cmdDelete", app_uia)
-    cmdDelete = app_win32.window(handle=cmdDelete_handle).wrapper_object()
+    #cmdDelete_handle = find_child_by_class(panel_handle, "WindowsForms10.BUTTON.app.0.141b42a_r7_ad1", "cmdDelete", app_uia)
+    cmdPMW = app_win32.window(handle=panel_handle).wrapper_object()
 
     #Click Button
-    cmdDelete.click()
+    cmdPMW.click()
 
     print(f"Example in {time.perf_counter() - start:6.3f} s")
 

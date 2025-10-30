@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import threading
 from typing import Any, Dict, Iterable, Iterator, List, Sequence, Tuple
 
@@ -69,6 +70,30 @@ def run_scan(
     return engine.run_scan(progress, data_list, start_index, cancel_event, template_name=template_name)
 
 
+_NUMERIC_PATTERN = re.compile(r"[-+]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?")
+
+
+def _normalize_numeric(value: Any) -> Any:
+    """Extract and normalize a numeric value from mixed GUI input strings."""
+    if isinstance(value, str):
+        stripped = value.strip()
+        if not stripped:
+            return pd.NA
+        candidate = stripped.replace("\u2212", "-")  # normalize unicode minus
+        match = _NUMERIC_PATTERN.search(candidate)
+        if not match:
+            return pd.NA
+        cleaned = match.group(0).replace(",", "")
+        return cleaned
+    return value
+
+
+def _coerce_numeric_column(values: Iterable[Any]) -> pd.Series:
+    series = pd.Series(list(values))
+    sanitized = series.map(_normalize_numeric)
+    return pd.to_numeric(sanitized, errors="coerce")
+
+
 def _standardize_inputs(rows: Sequence[Any]) -> pd.DataFrame:
     if not rows:
         return pd.DataFrame(columns=["density", "depth", "wob_rih", "wob_pooh"])
@@ -95,18 +120,16 @@ def _standardize_inputs(rows: Sequence[Any]) -> pd.DataFrame:
         "stretch_foe_pooh": "wob_pooh",
     }
 
-    data: dict[str, Iterable[Any]] = {}
+    data: dict[str, pd.Series] = {}
     for source, target in column_map.items():
+        column_values: Iterable[Any]
         if source in frame.columns:
-            data[target] = frame[source]
+            column_values = frame[source]
         else:
-            data[target] = [pd.NA] * len(frame)
+            column_values = [pd.NA] * len(frame)
+        data[target] = _coerce_numeric_column(column_values)
 
-    inputs_df = pd.DataFrame(data)
-    for column in inputs_df.columns:
-        inputs_df[column] = pd.to_numeric(inputs_df[column], errors="coerce")
-
-    return inputs_df
+    return pd.DataFrame(data)
 
 
 def _count_samples(outputs: Dict[str, List[BatchResult]]) -> int:
