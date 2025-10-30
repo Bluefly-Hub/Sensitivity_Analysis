@@ -10,7 +10,7 @@ from typing import Any, Dict, List
 
 import pandas as pd
 
-from ..automation.Automation import ProgressReporter
+from ..automation.Automation import BatchResult, ProgressReporter
 from ..engine import CerberusEngine
 
 
@@ -347,10 +347,33 @@ class CerberusApp(tk.Tk):
             if isinstance(rows, pd.DataFrame):
                 incoming = rows.to_dict(orient="records")
             elif isinstance(rows, list):
-                incoming = rows
+                if rows and all(isinstance(item, BatchResult) for item in rows):
+                    incoming: List[Dict[str, Any]] = []
+                    for batch in rows:
+                        table = batch.table if isinstance(batch.table, pd.DataFrame) else None
+                        if table is None:
+                            continue
+                        batch_records = table.to_dict(orient="records")
+                        incoming.extend(batch_records)
+                else:
+                    incoming = []
+                    for item in rows:
+                        if isinstance(item, dict):
+                            incoming.append(dict(item))
+                        elif hasattr(item, "_asdict"):
+                            incoming.append(dict(item._asdict()))  # type: ignore[call-arg]
+                        else:
+                            incoming.append({"value": item})
             else:
                 continue
-            self._merge_mode_rows(normalized, incoming)
+            target_rows, _, columns = self._resolve_mode_targets(normalized)
+            target_rows.clear()
+            if incoming:
+                target_rows.extend(dict(row) for row in incoming)
+                columns.clear()
+                columns.extend(incoming[0].keys())
+            else:
+                columns.clear()
             updated_modes.append(normalized)
 
         self.rih_df = pd.DataFrame(self.rih_rows)
@@ -360,35 +383,6 @@ class CerberusApp(tk.Tk):
 
         for mode in updated_modes:
             self._reload_tree(mode)
-
-    def _merge_mode_rows(self, mode: str, incoming: List[Dict[str, Any]]) -> None:
-        if not incoming:
-            return
-        target_rows, _, _ = self._resolve_mode_targets(mode)
-        if not target_rows:
-            target_rows.extend(dict(row) for row in incoming)
-            return
-
-        index_map: Dict[Any, Dict[str, Any]] = {}
-        tail_rows: List[Dict[str, Any]] = []
-        for row in target_rows:
-            idx = row.get("index")
-            if idx is None:
-                tail_rows.append(row)
-            else:
-                index_map[idx] = row
-
-        for row in incoming:
-            idx = row.get("index")
-            if idx is None:
-                tail_rows.append(dict(row))
-            else:
-                index_map[idx] = dict(row)
-
-        merged: List[Dict[str, Any]] = [index_map[key] for key in sorted(index_map.keys())]
-        merged.extend(tail_rows)
-        target_rows.clear()
-        target_rows.extend(merged)
 
     def _handle_error(self, message: str) -> None:
         self.status_var.set("Error")
