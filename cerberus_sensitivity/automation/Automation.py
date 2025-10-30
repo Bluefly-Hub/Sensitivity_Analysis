@@ -8,7 +8,7 @@ if __package__ is None or __package__ == "":
 
 from dataclasses import dataclass
 from itertools import cycle, product
-from typing import Any, Callable, List, Mapping, Protocol, Sequence
+from typing import Any, Callable, List, Mapping, Protocol, Sequence, Tuple
 
 import pandas as pd
 

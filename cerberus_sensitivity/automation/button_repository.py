@@ -10,6 +10,8 @@ import warnings
 import pandas as pd
 
 from pywinauto import Application, timings
+from pywinauto.findbestmatch import MatchError
+from pywinauto.findwindows import ElementAmbiguousError, ElementNotFoundError
 from pywinauto.remote_memory_block import AccessDenied
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as InvokeTimeout
 
@@ -20,7 +22,7 @@ warnings.filterwarnings(
     module="pywinauto.application",
 )
 
-timings.Timings.window_find_timeout = 0.5
+timings.Timings.window_find_timeout = 1.0
 timings.Timings.window_find_retry = 0.05
 timings.Timings.after_click_wait = 0.0
 
@@ -98,6 +100,33 @@ def _ensure_parameters_tab(timeout: float = 90.0) -> None:
 def _ensure_outputs_tab(timeout: float = 90.0) -> None:
     Sensitivity_Setting_Outputs(timeout=timeout)
     #time.sleep(0.1)
+
+
+def _wait_for_parameter_matrix_window(
+    *,
+    timeout: float = 15.0,
+    retry_interval: float = 0.1,
+) -> None:
+    """Ensure the Parameter Matrix window is visible before interacting."""
+    deadline = time.perf_counter() + timeout
+    app_uia = Application(backend="uia").connect(auto_id="frmOrpheus")
+    main_window = app_uia.window(auto_id="frmOrpheus", control_type="Window")
+
+    while time.perf_counter() < deadline:
+        try:
+            matrix_window = main_window.child_window(
+                auto_id="frmSensitivityMatrix",
+            )
+            matrix_window.wait("visible ready", timeout=0.3)
+            try:
+                matrix_window.set_focus()
+            except (RuntimeError, timings.TimeoutError):
+                pass
+            return
+        except (ElementNotFoundError, ElementAmbiguousError, MatchError, timings.TimeoutError):
+            time.sleep(retry_interval)
+
+    raise TimeoutError("Timed out waiting for Parameter Matrix window to become ready.")
 
 
 def _coerce_numeric_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -189,6 +218,19 @@ def Parameters_Pipe_fluid_density(checked: bool | None = None, timeout: float = 
         return invoke_button("button5", timeout=timeout)
     return _set_checkbox_state("button5", checked, timeout=timeout)
 
+def Parameters_Depth(checked: bool | None = None, timeout: float = 90.0):
+    """Toggle or set the Pipe Depth parameter checkbox (button5)."""
+    _ensure_parameters_tab(timeout=timeout)
+    if checked is None:
+        return invoke_button("button32", timeout=timeout)
+    return _set_checkbox_state("button32", checked, timeout=timeout)
+
+def Parameters_FF(checked: bool | None = None, timeout: float = 90.0):
+    """Toggle or set the Pipe Depth parameter checkbox (button5)."""
+    _ensure_parameters_tab(timeout=timeout)
+    if checked is None:
+        return invoke_button("button33", timeout=timeout)
+    return _set_checkbox_state("button33", checked, timeout=timeout)
 
 def Parameters_POOH(checked: bool | None = None, timeout: float = 90.0):
     """Toggle or set the POOH parameter checkbox (button6)."""
@@ -233,6 +275,7 @@ def Parameter_Matrix_Wizard(timeout: float = 90.0):
 
 def Parameter_Matrix_BHA_Depth_Row0(timeout: float = 60.0):
     """Select the Parameter Matrix grid cell for BHA Depth row 0 (button11)."""
+    _wait_for_parameter_matrix_window(timeout=min(timeout, 15.0))
     return invoke_button("button11", timeout=timeout)
 
 
@@ -258,15 +301,18 @@ def Edit_cmdOK(timeout: float = 60.0):
 
 def Parameter_Matrix_PFD_Row0(timeout: float = 60.0):
     """Select the Parameter Matrix grid cell for PFD row 0 (button17)."""
+    _wait_for_parameter_matrix_window(timeout=min(timeout, 15.0))
     return invoke_button("button17", timeout=timeout)
 
 
 def Parameter_Matrix_FOE_POOH_Row0(timeout: float = 60.0):
     """Select the Parameter Matrix grid cell for FOE row 0 (button19)."""
+    _wait_for_parameter_matrix_window(timeout=min(timeout, 15.0))
     return invoke_button("button19", timeout=timeout)
 
 def Parameter_Matrix_FOE_RIH_Row0(timeout: float = 60.0):
     """Select the Parameter Matrix grid cell for FOE row 0 (button28)."""
+    _wait_for_parameter_matrix_window(timeout=min(timeout, 15.0))
     return invoke_button("button28", timeout=timeout)
 
 
@@ -482,7 +528,7 @@ def Open_Template():
     raise RuntimeError("Timeout locating 'Open Template' menu item")
 
 
-def Set_Parameters_RIH():
+def Set_Parameters_RIH_Old():
     start = time.perf_counter()
 
     # Connect to main app window via UIA
@@ -520,5 +566,15 @@ def Set_Parameters_RIH():
     FOE_RIH_Button.click()
     Parameters_Minimum_Surface_Weight_During_RIH()
 
+
+    print(f"Set_Parameters_RIH in {time.perf_counter() - start:6.3f} s")
+
+def Set_Parameters_RIH():
+    start = time.perf_counter()
+    Parameters_Depth(checked=True)
+    Parameters_FF(checked=False)
+    Parameters_Pipe_fluid_density(checked=True)
+    Parameters_RIH(checked=True)
+    Parameters_Minimum_Surface_Weight_During_RIH(checked=True)
 
     print(f"Set_Parameters_RIH in {time.perf_counter() - start:6.3f} s")

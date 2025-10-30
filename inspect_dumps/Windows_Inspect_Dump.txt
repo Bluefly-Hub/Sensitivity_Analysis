@@ -2329,8 +2329,168 @@ Ancestors:
 
 
 [button32]
+How found:	Selected from tree...
+Name:	"BHA depth"
+ControlType:	UIA_CheckBoxControlTypeId (0xC352)
+LocalizedControlType:	"check box"
+BoundingRectangle:	{l:418 t:446 r:643 b:469}
+IsEnabled:	true
+IsOffscreen:	false
+IsKeyboardFocusable:	true
+HasKeyboardFocus:	false
+AccessKey:	""
+ProcessId:	8968
+RuntimeId:	[2A.1BF0B2A]
+AutomationId:	"chkDepth"
+FrameworkId:	"WinForm"
+ClassName:	"WindowsForms10.BUTTON.app.0.141b42a_r7_ad1"
+NativeWindowHandle:	0x1BF0B2A
+ProviderDescription:	"[pid:29008,providerId:0x1BF0B2A Main:Nested [pid:8968,providerId:0x1BF0B2A Main(parent link):Microsoft: MSAA Proxy (unmanaged:UIAutomationCore.DLL)]; Nonclient:Microsoft: Non-Client Proxy (unmanaged:uiautomationcore.dll); Hwnd(parent link):Microsoft: HWND Proxy (unmanaged:uiautomationcore.dll)]"
+IsPassword:	false
+HelpText:	""
+IsDialog:	false
+LegacyIAccessible.ChildId:	0
+LegacyIAccessible.DefaultAction:	"Check"
+LegacyIAccessible.Description:	""
+LegacyIAccessible.Help:	""
+LegacyIAccessible.KeyboardShortcut:	""
+LegacyIAccessible.Name:	"BHA depth"
+LegacyIAccessible.Role:	check box (0x2C)
+LegacyIAccessible.State:	focusable (0x100000)
+LegacyIAccessible.Value:	""
+Toggle.ToggleState:	Off (0)
+IsAnnotationPatternAvailable:	false
+IsDragPatternAvailable:	false
+IsDockPatternAvailable:	false
+IsDropTargetPatternAvailable:	false
+IsExpandCollapsePatternAvailable:	false
+IsGridItemPatternAvailable:	false
+IsGridPatternAvailable:	false
+IsInvokePatternAvailable:	true
+IsItemContainerPatternAvailable:	false
+IsLegacyIAccessiblePatternAvailable:	true
+IsMultipleViewPatternAvailable:	false
+IsObjectModelPatternAvailable:	false
+IsRangeValuePatternAvailable:	false
+IsScrollItemPatternAvailable:	false
+IsScrollPatternAvailable:	false
+IsSelectionItemPatternAvailable:	false
+IsSelectionPatternAvailable:	false
+IsSpreadsheetItemPatternAvailable:	false
+IsSpreadsheetPatternAvailable:	false
+IsStylesPatternAvailable:	false
+IsSynchronizedInputPatternAvailable:	false
+IsTableItemPatternAvailable:	false
+IsTablePatternAvailable:	false
+IsTextChildPatternAvailable:	false
+IsTextEditPatternAvailable:	false
+IsTextPatternAvailable:	false
+IsTextPattern2Available:	false
+IsTogglePatternAvailable:	true
+IsTransformPatternAvailable:	false
+IsTransform2PatternAvailable:	false
+IsValuePatternAvailable:	false
+IsVirtualizedItemPatternAvailable:	false
+IsWindowPatternAvailable:	false
+IsCustomNavigationPatternAvailable:	false
+IsSelectionPattern2Available:	false
+FirstChild:	[null]
+LastChild:	[null]
+Next:	"Friction factor offset by percent" radio button
+Previous:	"Additional agitators" check box
+Other Props:	Object has no additional properties
+Children:	Container has no children
+Ancestors:	"" pane
+	"AutomationId = pnlParameters" window
+	Parameters
+	"AutomationId = tabSettings" window
+	"AutomationId = SplitContainer2" window
+	"AutomationId = Panel15" window
+	"AutomationId = SplitContainer1" window
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
 
 [button33]
+How found:	Selected from tree...
+Name:	"Friction factor"
+ControlType:	UIA_CheckBoxControlTypeId (0xC352)
+LocalizedControlType:	"check box"
+BoundingRectangle:	{l:418 t:671 r:643 b:694}
+IsEnabled:	true
+IsOffscreen:	false
+IsKeyboardFocusable:	true
+HasKeyboardFocus:	false
+AccessKey:	""
+ProcessId:	8968
+RuntimeId:	[2A.30D28]
+AutomationId:	"chkFriction"
+FrameworkId:	"WinForm"
+ClassName:	"WindowsForms10.BUTTON.app.0.141b42a_r7_ad1"
+NativeWindowHandle:	0x30D28
+ProviderDescription:	"[pid:29008,providerId:0x30D28 Main:Nested [pid:8968,providerId:0x30D28 Main(parent link):Microsoft: MSAA Proxy (unmanaged:UIAutomationCore.DLL)]; Nonclient:Microsoft: Non-Client Proxy (unmanaged:uiautomationcore.dll); Hwnd(parent link):Microsoft: HWND Proxy (unmanaged:uiautomationcore.dll)]"
+IsPassword:	false
+HelpText:	""
+IsDialog:	false
+LegacyIAccessible.ChildId:	0
+LegacyIAccessible.DefaultAction:	"Uncheck"
+LegacyIAccessible.Description:	""
+LegacyIAccessible.Help:	""
+LegacyIAccessible.KeyboardShortcut:	""
+LegacyIAccessible.Name:	"Friction factor"
+LegacyIAccessible.Role:	check box (0x2C)
+LegacyIAccessible.State:	checked,focusable (0x100010)
+LegacyIAccessible.Value:	""
+Toggle.ToggleState:	On (1)
+IsAnnotationPatternAvailable:	false
+IsDragPatternAvailable:	false
+IsDockPatternAvailable:	false
+IsDropTargetPatternAvailable:	false
+IsExpandCollapsePatternAvailable:	false
+IsGridItemPatternAvailable:	false
+IsGridPatternAvailable:	false
+IsInvokePatternAvailable:	true
+IsItemContainerPatternAvailable:	false
+IsLegacyIAccessiblePatternAvailable:	true
+IsMultipleViewPatternAvailable:	false
+IsObjectModelPatternAvailable:	false
+IsRangeValuePatternAvailable:	false
+IsScrollItemPatternAvailable:	false
+IsScrollPatternAvailable:	false
+IsSelectionItemPatternAvailable:	false
+IsSelectionPatternAvailable:	false
+IsSpreadsheetItemPatternAvailable:	false
+IsSpreadsheetPatternAvailable:	false
+IsStylesPatternAvailable:	false
+IsSynchronizedInputPatternAvailable:	false
+IsTableItemPatternAvailable:	false
+IsTablePatternAvailable:	false
+IsTextChildPatternAvailable:	false
+IsTextEditPatternAvailable:	false
+IsTextPatternAvailable:	false
+IsTextPattern2Available:	false
+IsTogglePatternAvailable:	true
+IsTransformPatternAvailable:	false
+IsTransform2PatternAvailable:	false
+IsValuePatternAvailable:	false
+IsVirtualizedItemPatternAvailable:	false
+IsWindowPatternAvailable:	false
+IsCustomNavigationPatternAvailable:	false
+IsSelectionPattern2Available:	false
+FirstChild:	[null]
+LastChild:	[null]
+Next:	"Pipe liquid flow rate" check box
+Previous:	"Well" check box
+Other Props:	Object has no additional properties
+Children:	Container has no children
+Ancestors:	"" pane
+	"AutomationId = pnlParameters" window
+	Parameters
+	"AutomationId = tabSettings" window
+	"AutomationId = SplitContainer2" window
+	"AutomationId = Panel15" window
+	"AutomationId = SplitContainer1" window
+	"AutomationId = frmOrphSensitivity" window
+	"AutomationId =	frmOrpheus" window
 
 [button34]
 
