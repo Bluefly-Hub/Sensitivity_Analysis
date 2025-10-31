@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from ctypes import windll, wintypes
 from pathlib import Path
+import time
 from typing import Any, Mapping, Sequence
 import warnings
 
@@ -391,4 +392,38 @@ def Sensitivity_Table(timeout: float = 90.0) -> pd.DataFrame:
 def Sensitivity_Parameter_ok(timeout: float = 60.0):
     """Confirm the Parameter Matrix edits (button29)."""
     return invoke_button("button29", timeout=timeout)
+
+def Example() -> None:
+    """
+    Connects to the application and automates entering numbers.
+    """
+    start_time = time.time()
+
+    app = Application(backend="uia").connect(auto_id="frmOrpheus", timeout=20)
+    print(f"Connected in {time.time() - start_time:.2f}s")
+
+    # --- THE CORRECTED LOGIC ---
+
+    # 1. Create the RECIPE for the parent form. DO NOT call .wrapper_object() yet.
+    # This is just a plan for how to find it.
+    sensitivity_form_spec = app.window(auto_id="frmOrphSensitivity",top_level_only=False)
+
+    # 2. Now, use the parent recipe to create the full recipes for the child controls.
+    txt_val_spec = sensitivity_form_spec.child_window(auto_id="txtVal")
+    cmd_add_spec = sensitivity_form_spec.child_window(auto_id="cmdAdd")
+
+    # 3. NOW we execute the recipes to get the final, cached controls.
+    # The slow search happens here, just once for each control.
+    print("Finding and caching controls...")
+    txt_val = txt_val_spec.wrapper_object()
+    cmd_add = cmd_add_spec.wrapper_object()
+    print(f"Controls found and cached in {time.time() - start_time:.2f}s")
+
+    # 4. The loop is fast because it uses the cached "final dish" objects.
+    for i in range(1, 11):
+        txt_val.set_text(str(i))
+        cmd_add.click()
+
+    print(f"\nSuccessfully entered numbers 1 through 10.")
+    print(f"Total execution time: {time.time() - start_time:.2f}s")
 
