@@ -138,6 +138,9 @@ def run_automation(
         Number of parameter combinations permitted per automation iteration.
     """
 
+    # Reset cached value lists when a new automation run begins.
+    _VALUE_LIST_CACHE.clear()
+
     rih_batches = run_rih(inputs, max_batch_size=max_batch_size)
     pooh_batches = run_pooh(inputs, max_batch_size=max_batch_size)
 
