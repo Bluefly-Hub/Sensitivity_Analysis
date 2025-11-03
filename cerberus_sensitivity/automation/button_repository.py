@@ -6,9 +6,14 @@ from pathlib import Path
 import time
 from typing import Any, Mapping, Sequence
 import warnings
+import win32gui
+import win32con
 
 import pandas as pd
 from pywinauto import Application, timings
+from pywinauto.findwindows import ElementNotFoundError
+from pywinauto.controls.uiawrapper import UIAWrapper
+from pywinauto.uia_element_info import UIAElementInfo
 
 from .button_bridge_CSharp_to_py import collect_table, invoke_button, set_button_value
 
@@ -147,6 +152,11 @@ def _is_generic_header(name: object) -> bool:
     return not text or text == "#" or text.startswith("column")
 
 
+def _normalize_uia_name(value: str | None) -> str:
+    """Collapse whitespace/newlines and lowercase for reliable matching."""
+    return " ".join(str(value or "").split()).lower()
+
+
 # ---------------------------------------------------------------------------
 # Navigation helpers and checkbox toggles
 # ---------------------------------------------------------------------------
@@ -260,27 +270,60 @@ def Set_Parameters_RIH(timeout: float = 90.0) -> None:
 
 def Parameter_Matrix_Wizard(timeout: float = 90.0):
     """Open the Parameter Matrix wizard (button10)."""
-    return invoke_button("button10", timeout=timeout)
+    app_uia = Application(backend="uia").connect(auto_id="frmOrpheus")
+    main_uia = app_uia.window(auto_id="frmOrphSensitivity", control_type="Window", top_level_only=False)
+
+    cmdMatrix_handle = main_uia.child_window(auto_id="cmdMatrix")
+    cmdMatrix=cmdMatrix_handle.wrapper_object()
+    return cmdMatrix.click_input()
 
 
 def Parameter_Matrix_BHA_Depth_Row0(timeout: float = 60.0):
-    """Select the Parameter Matrix cell for BHA depth row 0 (button11)."""
-    return invoke_button("button11", timeout=timeout)
+    app = Application(backend="uia").connect(auto_id="frmOrpheus")
+    table = app.window(
+        auto_id="frmSensitivityMatrix",
+        control_type="Window",
+        top_level_only=False,
+    ).child_window(auto_id="grdVal", control_type="Table").wrapper_object()
+
+    cell = UIAWrapper(UIAElementInfo(table.iface_grid.GetItem(0, 1)))
+    cell.click_input()
 
 
 def Parameter_Matrix_PFD_Row0(timeout: float = 60.0):
-    """Select the Parameter Matrix cell for pipe fluid density row 0 (button17)."""
-    return invoke_button("button17", timeout=timeout)
+    app = Application(backend="uia").connect(auto_id="frmOrpheus")
+    table = app.window(
+        auto_id="frmSensitivityMatrix",
+        control_type="Window",
+        top_level_only=False,
+    ).child_window(auto_id="grdVal", control_type="Table").wrapper_object()
+
+    cell = UIAWrapper(UIAElementInfo(table.iface_grid.GetItem(0, 18)))
+    cell.click_input()
 
 
 def Parameter_Matrix_FOE_POOH_Row0(timeout: float = 60.0):
-    """Select the Parameter Matrix cell for FOE POOH row 0 (button19)."""
-    return invoke_button("button19", timeout=timeout)
+    app = Application(backend="uia").connect(auto_id="frmOrpheus")
+    table = app.window(
+        auto_id="frmSensitivityMatrix",
+        control_type="Window",
+        top_level_only=False,
+    ).child_window(auto_id="grdVal", control_type="Table").wrapper_object()
+
+    cell = UIAWrapper(UIAElementInfo(table.iface_grid.GetItem(0, 22)))
+    cell.click_input()
 
 
 def Parameter_Matrix_FOE_RIH_Row0(timeout: float = 60.0):
-    """Select the Parameter Matrix cell for FOE RIH row 0 (button28)."""
-    return invoke_button("button28", timeout=timeout)
+    app = Application(backend="uia").connect(auto_id="frmOrpheus")
+    table = app.window(
+        auto_id="frmSensitivityMatrix",
+        control_type="Window",
+        top_level_only=False,
+    ).child_window(auto_id="grdVal", control_type="Table").wrapper_object()
+
+    cell = UIAWrapper(UIAElementInfo(table.iface_grid.GetItem(0, 21)))
+    cell.click_input()
 
 
 # ---------------------------------------------------------------------------
