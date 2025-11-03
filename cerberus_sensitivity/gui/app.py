@@ -1,14 +1,15 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import csv
 import io
 import queue
 import threading
+import time
 import tkinter as tk
-from tkinter import messagebox, ttk
-from typing import Any, Dict, List
 from datetime import datetime
 from pathlib import Path
+from tkinter import messagebox, ttk
+from typing import Any, Dict, List
 
 import pandas as pd
 
@@ -70,6 +71,9 @@ class CerberusApp(tk.Tk):
         self.cancel_event = threading.Event()
         self.total_rows = 0
         self.status_var = tk.StringVar(value="Idle")
+        self.timer_var = tk.StringVar(value="Elapsed: 00:00:00")
+        self._timer_start: float | None = None
+        self._timer_job: str | None = None
         self._keep_awake: KeepAwake | None = None
         self._inputs_enabled = True
 
@@ -89,7 +93,6 @@ class CerberusApp(tk.Tk):
         self.rih_tree: ttk.Treeview
         self.pooh_tree: ttk.Treeview
         self.btn_run: ttk.Button
-        self.btn_resume: ttk.Button
         self.btn_stop: ttk.Button
         self.btn_add: ttk.Button
         self.btn_remove: ttk.Button
@@ -139,12 +142,11 @@ class CerberusApp(tk.Tk):
         control_row.pack(fill=tk.X, pady=(10, 0))
         self.btn_run = ttk.Button(control_row, text="Run", command=self._run)
         self.btn_run.pack(side=tk.LEFT)
-        self.btn_resume = ttk.Button(control_row, text="Resume", command=self._resume)
-        self.btn_resume.pack(side=tk.LEFT, padx=5)
         self.btn_stop = ttk.Button(control_row, text="Stop", command=self._stop)
         self.btn_stop.pack(side=tk.LEFT)
 
         ttk.Label(input_frame, textvariable=self.status_var).pack(anchor=tk.W, pady=(10, 0))
+        ttk.Label(input_frame, textvariable=self.timer_var).pack(anchor=tk.W)
 
         # Step 4: Output panes for RIH/POOH review
         ttk.Label(result_frame, text="Results").pack(anchor=tk.W)
@@ -175,7 +177,6 @@ class CerberusApp(tk.Tk):
         state = tk.NORMAL if enabled else tk.DISABLED
         for widget in (
             self.btn_run,
-            self.btn_resume,
             self.btn_stop,
             self.btn_add,
             self.btn_remove,
@@ -306,6 +307,7 @@ class CerberusApp(tk.Tk):
                 if template:
                     status += f" | Template: {template}"
                 self.status_var.set(status)
+                self._start_timer()
                 self._set_controls_enabled(False)
                 for mode in (MODE_RIH, MODE_POOH):
                     self._progress_rows[mode].clear()
@@ -355,6 +357,7 @@ class CerberusApp(tk.Tk):
         self.status_var.set(message)
 
     def _handle_done(self, payload: Dict[str, Any]) -> None:
+        self._stop_timer()
         outputs = payload.get("outputs")
         if isinstance(outputs, dict):
             self._sync_outputs_from_payload(outputs)
@@ -413,6 +416,7 @@ class CerberusApp(tk.Tk):
 
     def _handle_error(self, message: str) -> None:
         self.status_var.set("Error")
+        self._stop_timer()
         self._set_controls_enabled(True)
         self._log_error(message)
         messagebox.showerror("Automation Error", message)
@@ -431,7 +435,7 @@ class CerberusApp(tk.Tk):
             # Logging should never interrupt the UI flow.
             pass
 
-    def _start_worker(self, start_index: int) -> None:
+    def _start_worker(self) -> None:
         if self.worker_thread and self.worker_thread.is_alive():
             messagebox.showinfo("Automation", "Worker already running.")
             return
@@ -439,8 +443,7 @@ class CerberusApp(tk.Tk):
         if not data_list:
             messagebox.showinfo("Automation", "Add at least one input row.")
             return
-        if start_index == 0:
-            self._clear_results()
+        self._clear_results()
         self.cancel_event.clear()
         keep_awake = KeepAwake()
         self._keep_awake = keep_awake
@@ -448,7 +451,7 @@ class CerberusApp(tk.Tk):
         def worker() -> None:
             try:
                 with keep_awake:
-                    self.engine.run_scan(self.progress, data_list, start_index, self.cancel_event)
+                    self.engine.run_scan(self.progress, data_list, 0, self.cancel_event)
             except Exception as exc:  # pylint: disable=broad-exception-caught
                 self._enqueue_event("error", {"message": str(exc)})
 
@@ -456,10 +459,7 @@ class CerberusApp(tk.Tk):
         self.worker_thread.start()
 
     def _run(self) -> None:
-        self._start_worker(start_index=0)
-
-    def _resume(self) -> None:
-        self._start_worker(start_index=self._total_processed_rows())
+        self._start_worker()
 
     def _stop(self) -> None:
         if self.worker_thread and self.worker_thread.is_alive():
@@ -494,6 +494,7 @@ class CerberusApp(tk.Tk):
         return sum(self._processed_counts.values())
 
     def _clear_results(self) -> None:
+        self._reset_timer_display()
         self.rih_rows.clear()
         self.pooh_rows.clear()
         self.rih_df = pd.DataFrame()
@@ -525,6 +526,44 @@ class CerberusApp(tk.Tk):
         for row in rows:
             values = [row.get(col, "") for col in columns]
             tree.insert("", tk.END, values=values)
+
+    @staticmethod
+    def _format_elapsed(seconds: float) -> str:
+        total_seconds = int(seconds)
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes, secs = divmod(remainder, 60)
+        return f"{hours:02}:{minutes:02}:{secs:02}"
+
+    def _start_timer(self) -> None:
+        if self._timer_job is not None:
+            self.after_cancel(self._timer_job)
+            self._timer_job = None
+        self._timer_start = time.perf_counter()
+        self.timer_var.set("Elapsed: 00:00:00")
+        self._schedule_timer_tick()
+
+    def _schedule_timer_tick(self) -> None:
+        if self._timer_start is None:
+            return
+        elapsed = time.perf_counter() - self._timer_start
+        self.timer_var.set(f"Elapsed: {self._format_elapsed(elapsed)}")
+        self._timer_job = self.after(1000, self._schedule_timer_tick)
+
+    def _stop_timer(self) -> None:
+        if self._timer_job is not None:
+            self.after_cancel(self._timer_job)
+            self._timer_job = None
+        if self._timer_start is not None:
+            elapsed = time.perf_counter() - self._timer_start
+            self.timer_var.set(f"Elapsed: {self._format_elapsed(elapsed)}")
+            self._timer_start = None
+
+    def _reset_timer_display(self) -> None:
+        if self._timer_job is not None:
+            self.after_cancel(self._timer_job)
+            self._timer_job = None
+        self._timer_start = None
+        self.timer_var.set("Elapsed: 00:00:00")
 
 
 def launch_gui() -> None:
