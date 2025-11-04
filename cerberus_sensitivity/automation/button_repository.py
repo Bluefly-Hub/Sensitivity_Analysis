@@ -5,6 +5,8 @@ from ctypes import windll, wintypes
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 import warnings
+import comtypes.client
+from comtypes.gen.UIAutomationClient import IUIAutomation, TreeScope_Descendants
 
 import pandas as pd
 from pywinauto import Application, timings
@@ -37,6 +39,37 @@ _DEFAULT_DUMP_PATH = (
     Path(__file__).resolve().parents[2] / "inspect_dumps" / "Windows_Inspect_Dump.txt"
 )
 
+
+def find_element_fast(root_element, automation_id, found_index=0):
+    """
+    Fast element search using direct UIA API
+    10x faster than pywinauto's window() search
+    """
+    uia = comtypes.client.GetModule('UIAutomationCore.dll')
+    iuia = comtypes.client.CreateObject('{ff48dba4-60ef-4201-aa87-54103eef594e}', interface=IUIAutomation)
+    
+    condition = iuia.CreatePropertyCondition(30011, automation_id)  # AutomationId
+    
+    if found_index == 0:
+        # Just find first
+        element = root_element.FindFirst(TreeScope_Descendants, condition)
+        return UIAWrapper(UIAElementInfo(element)) if element else None
+    else:
+        # Find all and return specific index
+        elements_array = root_element.FindAll(TreeScope_Descendants, condition)
+        if found_index < elements_array.Length:
+            element = elements_array.GetElement(found_index)
+            return UIAWrapper(UIAElementInfo(element))
+        return None
+
+def find_element_by_title(root_element, title):
+    """Fast search by title/name"""
+    uia = comtypes.client.GetModule('UIAutomationCore.dll')
+    iuia = comtypes.client.CreateObject('{ff48dba4-60ef-4201-aa87-54103eef594e}', interface=IUIAutomation)
+    
+    condition = iuia.CreatePropertyCondition(30005, title)  # Name property
+    element = root_element.FindFirst(TreeScope_Descendants, condition)
+    return UIAWrapper(UIAElementInfo(element)) if element else None
 
 # ---------------------------------------------------------------------------
 # Data helpers
@@ -157,59 +190,158 @@ def _normalize_uia_name(value: str | None) -> str:
 # Navigation helpers and checkbox toggles
 # ---------------------------------------------------------------------------
 
-def button_Sensitivity_Analysis(timeout: float = 180.0):
+def button_Sensitivity_Analysis():
     """Navigate to Tools > Sensitivity Analysis... (button1)."""
-    return invoke_button("button1", timeout=timeout)
+    app = Application(backend="uia").connect(auto_id="frmOrpheus")
+    root = app.top_window().element_info.element
+    MenuStrip1 = find_element_fast(root, "MenuStrip1").element_info.element
+    tools_menu = find_element_by_title(MenuStrip1, "Tools")
+    tools_menu.click_input()
+    
+    # Now find and click "Sensitivity Analysis..." menu item
+    sensitivity_item = find_element_by_title(MenuStrip1, "Sensitivity Analysis...")
+    sensitivity_item.click_input()
 
 
 def Sensitivity_Setting_Parameters(timeout: float = 90.0):
     """Select the Parameters pane tab (button27)."""
-    return invoke_button("button27", timeout=timeout)
+    app = Application(backend="uia").connect(auto_id="frmOrpheus")
+    root = app.top_window().element_info.element
+    params_tab = find_element_by_title(root, "Parameters")
+    
+    # Check if already selected - tabs have IsSelected property
+    try:
+        is_selected = params_tab.get_selection_item_pattern().CurrentIsSelected
+        if not is_selected:
+            params_tab.select()
+    except Exception:
+        # If we can't check, just try selecting (it won't error if already selected)
+        try:
+            params_tab.select()
+        except Exception:
+            # Already selected, ignore the error
+            pass
 
 
 def Sensitivity_Setting_Outputs(timeout: float = 90.0):
     """Select the Outputs pane tab (button7)."""
-    return invoke_button("button7", timeout=timeout)
+    app = Application(backend="uia").connect(auto_id="frmOrpheus")
+    root = app.top_window().element_info.element
+    outputs_tab = find_element_by_title(root, "Outputs")
+    
+    # Check if already selected - tabs have IsSelected property
+    try:
+        is_selected = outputs_tab.get_selection_item_pattern().CurrentIsSelected
+        if not is_selected:
+            outputs_tab.select()
+    except Exception:
+        # If we can't check, just try selecting (it won't error if already selected)
+        try:
+            outputs_tab.select()
+        except Exception:
+            # Already selected, ignore the error
+            pass
 
 
 def Parameters_Pipe_fluid_density(checked: bool | None = None, timeout: float = 90.0):
     """Toggle or read Pipe Fluid Density (button5)."""
     _ensure_parameters_tab(timeout=timeout)
+    
+    app = Application(backend="uia").connect(auto_id="frmOrpheus")
+    root = app.top_window().element_info.element
+    checkbox = find_element_fast(root, "chkPipeFluidDens")
+
     if checked is None:
-        return invoke_button("button5", timeout=timeout)
-    return _set_checkbox_state("button5", checked, timeout=timeout)
+        # Read mode - just click to toggle
+        checkbox.click()
+    else:
+        # Set mode - check current state and only click if different
+        current_state = checkbox.iface_toggle.CurrentToggleState
+        is_checked = (current_state == 1)  # 1 = On, 0 = Off
+        
+        if is_checked != checked:
+            checkbox.click()
+
 
 
 def Parameters_Depth(checked: bool | None = None, timeout: float = 90.0):
     """Toggle or read BHA Depth (button32)."""
     _ensure_parameters_tab(timeout=timeout)
+    
+    app = Application(backend="uia").connect(auto_id="frmOrpheus")
+    root = app.top_window().element_info.element
+    checkbox = find_element_fast(root, "chkDepth")
+
     if checked is None:
-        return invoke_button("button32", timeout=timeout)
-    return _set_checkbox_state("button32", checked, timeout=timeout)
+        # Read mode - just click to toggle
+        checkbox.click()
+    else:
+        # Set mode - check current state and only click if different
+        current_state = checkbox.iface_toggle.CurrentToggleState
+        is_checked = (current_state == 1)  # 1 = On, 0 = Off
+        
+        if is_checked != checked:
+            checkbox.click()
 
 
 def Parameters_FF(checked: bool | None = None, timeout: float = 90.0):
     """Toggle or read Friction Factor (button33)."""
     _ensure_parameters_tab(timeout=timeout)
+    
+    app = Application(backend="uia").connect(auto_id="frmOrpheus")
+    root = app.top_window().element_info.element
+    checkbox = find_element_fast(root, "chkFriction")
+
     if checked is None:
-        return invoke_button("button33", timeout=timeout)
-    return _set_checkbox_state("button33", checked, timeout=timeout)
+        # Read mode - just click to toggle
+        checkbox.click()
+    else:
+        # Set mode - check current state and only click if different
+        current_state = checkbox.iface_toggle.CurrentToggleState
+        is_checked = (current_state == 1)  # 1 = On, 0 = Off
+        
+        if is_checked != checked:
+            checkbox.click()
 
 
 def Parameters_POOH(checked: bool | None = None, timeout: float = 90.0):
     """Toggle or read the POOH parameter checkbox (button6)."""
     _ensure_parameters_tab(timeout=timeout)
+    
+    app = Application(backend="uia").connect(auto_id="frmOrpheus")
+    root = app.top_window().element_info.element
+    checkbox = find_element_fast(root, "chkFOE_POOH")
+
     if checked is None:
-        return invoke_button("button6", timeout=timeout)
-    return _set_checkbox_state("button6", checked, timeout=timeout)
+        # Read mode - just click to toggle
+        checkbox.click()
+    else:
+        # Set mode - check current state and only click if different
+        current_state = checkbox.iface_toggle.CurrentToggleState
+        is_checked = (current_state == 1)  # 1 = On, 0 = Off
+        
+        if is_checked != checked:
+            checkbox.click()
 
 
 def Parameters_RIH(checked: bool | None = None, timeout: float = 90.0):
     """Toggle or read the RIH parameter checkbox (button26)."""
     _ensure_parameters_tab(timeout=timeout)
+    
+    app = Application(backend="uia").connect(auto_id="frmOrpheus")
+    root = app.top_window().element_info.element
+    checkbox = find_element_fast(root, "chkFOE")
+
     if checked is None:
-        return invoke_button("button26", timeout=timeout)
-    return _set_checkbox_state("button26", checked, timeout=timeout)
+        # Read mode - just click to toggle
+        checkbox.click()
+    else:
+        # Set mode - check current state and only click if different
+        current_state = checkbox.iface_toggle.CurrentToggleState
+        is_checked = (current_state == 1)  # 1 = On, 0 = Off
+        
+        if is_checked != checked:
+            checkbox.click()
 
 
 def Parameters_Maximum_Surface_Weight_During_POOH(
@@ -217,9 +349,20 @@ def Parameters_Maximum_Surface_Weight_During_POOH(
 ):
     """Toggle or read Max surface weight during POOH (button8)."""
     _ensure_outputs_tab(timeout=timeout)
+    app = Application(backend="uia").connect(auto_id="frmOrpheus")
+    root = app.top_window().element_info.element
+    checkbox = find_element_fast(root, "chkPOOH_MaxSW")
+
     if checked is None:
-        return invoke_button("button8", timeout=timeout)
-    return _set_checkbox_state("button8", checked, timeout=timeout)
+        # Read mode - just click to toggle
+        checkbox.click()
+    else:
+        # Set mode - check current state and only click if different
+        current_state = checkbox.iface_toggle.CurrentToggleState
+        is_checked = (current_state == 1)  # 1 = On, 0 = Off
+        
+        if is_checked != checked:
+            checkbox.click()
 
 
 def Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS(
@@ -227,9 +370,20 @@ def Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS(
 ):
     """Toggle or read Max pipe stress during POOH (% of YS) (button9)."""
     _ensure_outputs_tab(timeout=timeout)
+    app = Application(backend="uia").connect(auto_id="frmOrpheus")
+    root = app.top_window().element_info.element
+    checkbox = find_element_fast(root, "chkPOOH_MaxYield")
+
     if checked is None:
-        return invoke_button("button9", timeout=timeout)
-    return _set_checkbox_state("button9", checked, timeout=timeout)
+        # Read mode - just click to toggle
+        checkbox.click()
+    else:
+        # Set mode - check current state and only click if different
+        current_state = checkbox.iface_toggle.CurrentToggleState
+        is_checked = (current_state == 1)  # 1 = On, 0 = Off
+        
+        if is_checked != checked:
+            checkbox.click()
 
 
 def Parameters_Minimum_Surface_Weight_During_RIH(
@@ -237,9 +391,20 @@ def Parameters_Minimum_Surface_Weight_During_RIH(
 ):
     """Toggle or read Min surface weight during RIH (button23)."""
     _ensure_outputs_tab(timeout=timeout)
+    app = Application(backend="uia").connect(auto_id="frmOrpheus")
+    root = app.top_window().element_info.element
+    checkbox = find_element_fast(root, "chkRIH_MinSW")
+
     if checked is None:
-        return invoke_button("button23", timeout=timeout)
-    return _set_checkbox_state("button23", checked, timeout=timeout)
+        # Read mode - just click to toggle
+        checkbox.click()
+    else:
+        # Set mode - check current state and only click if different
+        current_state = checkbox.iface_toggle.CurrentToggleState
+        is_checked = (current_state == 1)  # 1 = On, 0 = Off
+        
+        if is_checked != checked:
+            checkbox.click()
 
 
 def Setup_POOH(timeout: float = 90.0) -> None:
@@ -249,15 +414,25 @@ def Setup_POOH(timeout: float = 90.0) -> None:
     Parameters_Maximum_Surface_Weight_During_POOH(checked=True, timeout=timeout)
     Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS(checked=True, timeout=timeout)
     Parameters_Minimum_Surface_Weight_During_RIH(checked=False, timeout=timeout)
+    Parameters_Depth(checked=False, timeout=timeout)
+    Parameters_FF(checked=False, timeout=timeout)
+    Parameters_Pipe_fluid_density(checked=True, timeout=timeout)
 
 
 def Set_Parameters_RIH(timeout: float = 90.0) -> None:
     """Apply the checkbox combination required for RIH runs."""
+    Parameters_POOH(checked=False, timeout=timeout)
+    Parameters_RIH(checked=True, timeout=timeout)
+    Parameters_Maximum_Surface_Weight_During_POOH(checked=False, timeout=timeout)
+    Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS(checked=False, timeout=timeout)
+    Parameters_Minimum_Surface_Weight_During_RIH(checked=True, timeout=timeout)
     Parameters_Depth(checked=True, timeout=timeout)
     Parameters_FF(checked=False, timeout=timeout)
     Parameters_Pipe_fluid_density(checked=True, timeout=timeout)
-    Parameters_RIH(checked=True, timeout=timeout)
-    Parameters_Minimum_Surface_Weight_During_RIH(checked=True, timeout=timeout)
+
+
+
+
 
 
 # ---------------------------------------------------------------------------
