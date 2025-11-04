@@ -307,7 +307,6 @@ class CerberusApp(tk.Tk):
                 if template:
                     status += f" | Template: {template}"
                 self.status_var.set(status)
-                self._start_timer()
                 self._set_controls_enabled(False)
                 for mode in (MODE_RIH, MODE_POOH):
                     self._progress_rows[mode].clear()
@@ -444,6 +443,7 @@ class CerberusApp(tk.Tk):
             messagebox.showinfo("Automation", "Add at least one input row.")
             return
         self._clear_results()
+        self._start_timer()
         self.cancel_event.clear()
         keep_awake = KeepAwake()
         self._keep_awake = keep_awake
