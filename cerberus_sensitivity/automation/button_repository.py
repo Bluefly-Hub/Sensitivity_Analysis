@@ -254,8 +254,8 @@ def _get_checkbox_and_toggle(automation_id: str, checked: bool | None):
     
     if checked is None:
         # Read mode - just click to toggle
-        checkbox.set_focus()
-        checkbox.click_input()
+        #checkbox.set_focus()
+        checkbox.toggle()
     else:
         # Set mode - check current state and only click if different
         try:
@@ -263,12 +263,12 @@ def _get_checkbox_and_toggle(automation_id: str, checked: bool | None):
             is_checked = (current_state == 1)  # 1 = On, 0 = Off
             
             if is_checked != checked:
-                checkbox.set_focus()
-                checkbox.click_input()
+                #checkbox.set_focus()
+                checkbox.toggle()
         except Exception:
             # Fallback if toggle pattern not available
-            checkbox.set_focus()
-            checkbox.click_input()
+            #checkbox.set_focus()
+            checkbox.toggle()
 
 
 def button_Sensitivity_Analysis():
@@ -325,32 +325,32 @@ def Sensitivity_Setting_Outputs(timeout: float = 90.0):
 
 def Parameters_Pipe_fluid_density(checked: bool | None = None, timeout: float = 90.0):
     """Toggle or read Pipe Fluid Density (button5)."""
-    _ensure_parameters_tab(timeout=timeout)
+    #_ensure_parameters_tab(timeout=timeout)
     _get_checkbox_and_toggle("chkPipeFluidDens", checked)
 
 
 
 def Parameters_Depth(checked: bool | None = None, timeout: float = 90.0):
     """Toggle or read BHA Depth (button32)."""
-    _ensure_parameters_tab(timeout=timeout)
+    #_ensure_parameters_tab(timeout=timeout)
     _get_checkbox_and_toggle("chkDepth", checked)
 
 
 def Parameters_FF(checked: bool | None = None, timeout: float = 90.0):
     """Toggle or read Friction Factor (button33)."""
-    _ensure_parameters_tab(timeout=timeout)
+    #_ensure_parameters_tab(timeout=timeout)
     _get_checkbox_and_toggle("chkFriction", checked)
 
 
 def Parameters_POOH(checked: bool | None = None, timeout: float = 90.0):
     """Toggle or read the POOH parameter checkbox (button6)."""
-    _ensure_parameters_tab(timeout=timeout)
+    #_ensure_parameters_tab(timeout=timeout)
     _get_checkbox_and_toggle("chkFOE_POOH", checked)
 
 
 def Parameters_RIH(checked: bool | None = None, timeout: float = 90.0):
     """Toggle or read the RIH parameter checkbox (button26)."""
-    _ensure_parameters_tab(timeout=timeout)
+    #_ensure_parameters_tab(timeout=timeout)
     _get_checkbox_and_toggle("chkFOE", checked)
 
 
@@ -358,7 +358,7 @@ def Parameters_Maximum_Surface_Weight_During_POOH(
     checked: bool | None = None, timeout: float = 90.0
 ):
     """Toggle or read Max surface weight during POOH (button8)."""
-    _ensure_outputs_tab(timeout=timeout)
+    #_ensure_outputs_tab(timeout=timeout)
     _get_checkbox_and_toggle("chkPOOH_MaxSW", checked)
 
 
@@ -366,7 +366,7 @@ def Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS(
     checked: bool | None = None, timeout: float = 90.0
 ):
     """Toggle or read Max pipe stress during POOH (% of YS) (button9)."""
-    _ensure_outputs_tab(timeout=timeout)
+    #_ensure_outputs_tab(timeout=timeout)
     _get_checkbox_and_toggle("chkPOOH_MaxYield", checked)
 
 
@@ -374,17 +374,19 @@ def Parameters_Minimum_Surface_Weight_During_RIH(
     checked: bool | None = None, timeout: float = 90.0
 ):
     """Toggle or read Min surface weight during RIH (button23)."""
-    _ensure_outputs_tab(timeout=timeout)
+    #_ensure_outputs_tab(timeout=timeout)
     _get_checkbox_and_toggle("chkRIH_MinSW", checked)
 
 
 def Setup_POOH(timeout: float = 90.0) -> None:
     """Apply the checkbox combination required for POOH runs."""
+    _ensure_parameters_tab(timeout=timeout)
     Parameters_POOH(checked=True, timeout=timeout)
     Parameters_RIH(checked=False, timeout=timeout)
     Parameters_Depth(checked=True, timeout=timeout)
     Parameters_FF(checked=False, timeout=timeout)
     Parameters_Pipe_fluid_density(checked=True, timeout=timeout)
+    _ensure_outputs_tab(timeout=timeout)
     Parameters_Maximum_Surface_Weight_During_POOH(checked=True, timeout=timeout)
     Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS(checked=True, timeout=timeout)
     Parameters_Minimum_Surface_Weight_During_RIH(checked=False, timeout=timeout)
@@ -392,11 +394,13 @@ def Setup_POOH(timeout: float = 90.0) -> None:
 
 def Set_Parameters_RIH(timeout: float = 90.0) -> None:
     """Apply the checkbox combination required for RIH runs."""
+    _ensure_parameters_tab(timeout=timeout)
     Parameters_POOH(checked=False, timeout=timeout)
     Parameters_RIH(checked=True, timeout=timeout)
     Parameters_Depth(checked=True, timeout=timeout)
     Parameters_FF(checked=False, timeout=timeout)
     Parameters_Pipe_fluid_density(checked=True, timeout=timeout)
+    _ensure_outputs_tab(timeout=timeout)
     Parameters_Maximum_Surface_Weight_During_POOH(checked=False, timeout=timeout)
     Parameters_Maximum_pipe_stress_during_POOH_percent_of_YS(checked=False, timeout=timeout)
     Parameters_Minimum_Surface_Weight_During_RIH(checked=True, timeout=timeout)
@@ -418,42 +422,38 @@ def Parameter_Matrix_Wizard(timeout: float = 90.0):
 
 
 def Parameter_Matrix_BHA_Depth_Row0(timeout: float = 60.0):
+    """Select and activate BHA Depth cell in Parameter Matrix (Row 0, Column 1)."""
     root = _get_app_root()
     matrix_window = find_element_fast(root, "frmSensitivityMatrix")
     table = find_element_fast(matrix_window.element_info.element, "grdVal")
-
     cell = UIAWrapper(UIAElementInfo(table.iface_grid.GetItem(0, 1)))
-    cell.set_focus()
-    cell.click_input()
+    cell.click_input()  # Double-click to open value editor
 
 
 def Parameter_Matrix_PFD_Row0(timeout: float = 60.0):
+    """Select and activate Pipe Fluid Density cell in Parameter Matrix (Row 0, Column 18)."""
     root = _get_app_root()
     matrix_window = find_element_fast(root, "frmSensitivityMatrix")
     table = find_element_fast(matrix_window.element_info.element, "grdVal")
-    
     cell = UIAWrapper(UIAElementInfo(table.iface_grid.GetItem(0, 18)))
-    cell.set_focus()
     cell.click_input()
 
 
 def Parameter_Matrix_FOE_POOH_Row0(timeout: float = 60.0):
+    """Select and activate FOE POOH cell in Parameter Matrix (Row 0, Column 22)."""
     root = _get_app_root()
     matrix_window = find_element_fast(root, "frmSensitivityMatrix")
     table = find_element_fast(matrix_window.element_info.element, "grdVal")
-
     cell = UIAWrapper(UIAElementInfo(table.iface_grid.GetItem(0, 22)))
-    cell.set_focus()
     cell.click_input()
 
 
 def Parameter_Matrix_FOE_RIH_Row0(timeout: float = 60.0):
+    """Select and activate FOE RIH cell in Parameter Matrix (Row 0, Column 21)."""
     root = _get_app_root()
     matrix_window = find_element_fast(root, "frmSensitivityMatrix")
     table = find_element_fast(matrix_window.element_info.element, "grdVal")
-
     cell = UIAWrapper(UIAElementInfo(table.iface_grid.GetItem(0, 21)))
-    cell.set_focus()
     cell.click_input()
 
 
@@ -527,8 +527,8 @@ def Edit_cmdOK(timeout: float = 60.0):
 def Sensitivity_Analysis_Calculate(timeout: float = 60.0):
     """Trigger the PAD Calculate button (button22)."""
     root = _get_app_root()
-    find_element_fast(root, "cmdCalc").click_input()
-    #return invoke_button("button22", timeout=timeout)
+    element = find_element_fast(root, "cmdCalc")
+    element.iface_invoke.Invoke()
 
 
 def Sensitivity_Table(timeout: float = 90.0) -> pd.DataFrame:
@@ -556,6 +556,6 @@ def Sensitivity_Table(timeout: float = 90.0) -> pd.DataFrame:
 def Sensitivity_Parameter_ok(timeout: float = 60.0):
     """Confirm the Parameter Matrix edits (button29)."""
     root = _get_app_root()
-    find_element_fast(root, "cmdOK").click_input()
-    #return invoke_button("button29", timeout=timeout)
+    element = find_element_fast(root, "cmdOK")
+    element.iface_invoke.Invoke()
 
