@@ -1,17 +1,21 @@
 # Virtual environments
 .venv/
+venv/
+env/
 
 # Python cache
 __pycache__/
 *.py[cod]
 *.pyd
 *.pyo
+.pytest_cache/
 
 # Build outputs
 bin/
 obj/
 build/
 dist/
+*.spec
 
 # Distribution metadata
 *.egg-info/
@@ -19,3 +23,24 @@ pip-wheel-metadata/
 
 # Logs
 *.log
+logs/
+
+# Temporary directories
+tmp_*/
+
+# IDE configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Compiled executables (don't commit builds)
+*.exe
+*.dll
+*.so
+*.dylib

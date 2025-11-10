@@ -1,18 +1,12 @@
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-if __package__ is None or __package__ == "":
-    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-
 from dataclasses import dataclass
 from itertools import cycle, product
 from typing import Any, Callable, List, Mapping, Protocol, Sequence, Tuple
 
 import pandas as pd
 
-from cerberus_sensitivity.automation.button_repository import (
+from Button_Repository import (
     Clear_Value_List,
     Edit_cmdOK,
     Parameter_Matrix_BHA_Depth_Row0,
@@ -28,6 +22,7 @@ from cerberus_sensitivity.automation.button_repository import (
     Set_Parameters_RIH,
     button_Sensitivity_Analysis,
 )
+
 
 
 DEFAULT_MAX_BATCH_SIZE = 200
@@ -425,6 +420,130 @@ def _normalize_test_columns(data: Mapping[str, Sequence[float]]) -> dict[str, Li
             normalized[column] = [next(iterator) for _ in range(max_length)]
 
     return normalized
+
+
+# ============================================================================
+# CerberusEngine - GUI Interface Layer
+# ============================================================================
+
+import re
+
+_NUMERIC_PATTERN = re.compile(r"[-+]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?")
+
+
+def _normalize_numeric(value: Any) -> Any:
+    """Extract and normalize a numeric value from mixed GUI input strings."""
+    if isinstance(value, str):
+        stripped = value.strip()
+        if not stripped:
+            return pd.NA
+        candidate = stripped.replace("\u2212", "-")  # normalize unicode minus
+        match = _NUMERIC_PATTERN.search(candidate)
+        if not match:
+            return pd.NA
+        cleaned = match.group(0).replace(",", "")
+        return cleaned
+    return value
+
+
+def _coerce_numeric_column(values: Any) -> pd.Series:
+    series = pd.Series(list(values))
+    sanitized = series.map(_normalize_numeric)
+    return pd.to_numeric(sanitized, errors="coerce")
+
+
+def _standardize_inputs(rows: Sequence[Any]) -> pd.DataFrame:
+    if not rows:
+        return pd.DataFrame(columns=["density", "depth", "wob_rih", "wob_pooh"])
+
+    # Convert row objects to dictionaries when possible.
+    normalized_rows: list[dict[str, Any]] = []
+    for row in rows:
+        if isinstance(row, dict):
+            normalized_rows.append(dict(row))
+        else:
+            attributes = {
+                key: getattr(row, key)
+                for key in dir(row)
+                if not key.startswith("_") and not callable(getattr(row, key))
+            }
+            normalized_rows.append(attributes)
+
+    frame = pd.DataFrame(normalized_rows)
+
+    column_map = {
+        "pipe_fluid_density": "density",
+        "depth": "depth",
+        "stretch_foe_rih": "wob_rih",
+        "stretch_foe_pooh": "wob_pooh",
+    }
+
+    data: dict[str, pd.Series] = {}
+    for source, target in column_map.items():
+        column_values: Any
+        if source in frame.columns:
+            column_values = frame[source]
+        else:
+            column_values = [pd.NA] * len(frame)
+        data[target] = _coerce_numeric_column(column_values)
+
+    return pd.DataFrame(data)
+
+
+def _count_samples(outputs: Mapping[str, List[BatchResult]]) -> int:
+    return sum(len(batch.combinations) for batches in outputs.values() for batch in batches)
+
+
+def _iterate_combos(outputs: Mapping[str, List[BatchResult]]):
+    for mode, batches in outputs.items():
+        for batch in batches:
+            for combo in batch.combinations:
+                yield mode, combo
+
+
+class CerberusEngine:
+    """
+    Thin façade used by the GUI to trigger automation batches.
+
+    This class now delegates directly to the streamlined automation skeleton.
+    """
+
+    def __init__(self, *, max_batch_size: int | None = None) -> None:
+        self.max_batch_size = max_batch_size or DEFAULT_MAX_BATCH_SIZE
+
+    def run_scan(
+        self,
+        progress: ProgressReporter,
+        data_list: Sequence[Any],
+        start_index: int,
+        cancel_event: Any,
+        template_name: str = "auto",
+    ) -> Tuple[Sequence[Any], Mapping[str, List[BatchResult]]]:
+        del template_name  # Template selection is not used in the new skeleton.
+
+        inputs_df = _standardize_inputs(data_list)
+        outputs = run_automation(inputs_df, max_batch_size=self.max_batch_size)
+
+        total_samples = _count_samples(outputs)
+        progress.init(total_samples, template="skeleton")
+
+        for index, (mode, combo) in enumerate(_iterate_combos(outputs)):
+            if cancel_event.is_set():
+                break
+            if index < start_index:
+                continue
+            progress.row(
+                index,
+                {
+                    "mode": mode,
+                    "density": combo.get("density"),
+                    "depth": combo.get("depth"),
+                    "wob": combo.get("wob"),
+                },
+            )
+
+        progress.done(final_inputs=data_list, outputs=outputs)
+        return data_list, outputs
 
 
 if __name__ == "__main__":

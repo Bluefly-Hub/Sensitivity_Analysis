@@ -13,8 +13,8 @@ from typing import Any, Dict, List
 
 import pandas as pd
 
-from ..automation.Automation import BatchResult, ProgressReporter
-from ..engine import CerberusEngine
+from Automation import BatchResult, ProgressReporter, CerberusEngine
+
 
 
 INPUT_COLUMNS = (
