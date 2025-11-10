@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\bsmith\\NCS Multistage\\Technical Services - Projects\\00_US\\001 Brad Smith\\00-Projects\\Active\\Code\\Cerberus_Sensitivity_Analysis\\Drill_Down_With_C.csproj": {}
+    "C:\\Users\\bsmith\\NCS Multistage\\Technical Services - Projects\\00_US\\001 Brad Smith\\00-Projects\\Active\\0_Brad_Python_Repository\\Complete\\Cerberus_Sensitivity_Analysis\\Drill_Down_With_C.csproj": {}
   },
   "projects": {
-    "C:\\Users\\bsmith\\NCS Multistage\\Technical Services - Projects\\00_US\\001 Brad Smith\\00-Projects\\Active\\Code\\Cerberus_Sensitivity_Analysis\\Drill_Down_With_C.csproj": {
+    "C:\\Users\\bsmith\\NCS Multistage\\Technical Services - Projects\\00_US\\001 Brad Smith\\00-Projects\\Active\\0_Brad_Python_Repository\\Complete\\Cerberus_Sensitivity_Analysis\\Drill_Down_With_C.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\bsmith\\NCS Multistage\\Technical Services - Projects\\00_US\\001 Brad Smith\\00-Projects\\Active\\Code\\Cerberus_Sensitivity_Analysis\\Drill_Down_With_C.csproj",
+        "projectUniqueName": "C:\\Users\\bsmith\\NCS Multistage\\Technical Services - Projects\\00_US\\001 Brad Smith\\00-Projects\\Active\\0_Brad_Python_Repository\\Complete\\Cerberus_Sensitivity_Analysis\\Drill_Down_With_C.csproj",
         "projectName": "Drill_Down_With_C",
-        "projectPath": "C:\\Users\\bsmith\\NCS Multistage\\Technical Services - Projects\\00_US\\001 Brad Smith\\00-Projects\\Active\\Code\\Cerberus_Sensitivity_Analysis\\Drill_Down_With_C.csproj",
+        "projectPath": "C:\\Users\\bsmith\\NCS Multistage\\Technical Services - Projects\\00_US\\001 Brad Smith\\00-Projects\\Active\\0_Brad_Python_Repository\\Complete\\Cerberus_Sensitivity_Analysis\\Drill_Down_With_C.csproj",
         "packagesPath": "C:\\Users\\bsmith\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\bsmith\\NCS Multistage\\Technical Services - Projects\\00_US\\001 Brad Smith\\00-Projects\\Active\\Code\\Cerberus_Sensitivity_Analysis\\obj\\",
+        "outputPath": "C:\\Users\\bsmith\\NCS Multistage\\Technical Services - Projects\\00_US\\001 Brad Smith\\00-Projects\\Active\\0_Brad_Python_Repository\\Complete\\Cerberus_Sensitivity_Analysis\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\bsmith\\AppData\\Roaming\\NuGet\\NuGet.Config"

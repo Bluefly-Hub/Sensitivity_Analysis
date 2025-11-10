@@ -13,8 +13,6 @@ from pywinauto import Application, timings
 from pywinauto.controls.uiawrapper import UIAWrapper
 from pywinauto.uia_element_info import UIAElementInfo
 
-from .button_bridge_CSharp_to_py import collect_table, set_button_value
-
 warnings.filterwarnings(
     "ignore",
     message="32-bit application should be automated using 32-bit Python",
@@ -205,21 +203,6 @@ def _coerce_numeric_columns(df: pd.DataFrame) -> pd.DataFrame:
             if numeric.notna().any():
                 df[column] = numeric
     return df
-
-
-def _set_checkbox_state(button_key: str, checked: bool, *, timeout: float = 90.0):
-    """Toggle a WinForms checkbox by writing to its ValuePattern."""
-    value = "True" if checked else "False"
-    completed = set_button_value(button_key, value=value, timeout=timeout)
-    stdout = (completed.stdout or "").splitlines()
-    for line in stdout:
-        if "Toggle.ToggleState" in line:
-            return line.strip()
-    combined = "\n".join(line.strip() for line in stdout if line.strip())
-    if combined:
-        return combined
-    state = "On (1)" if checked else "Off (0)"
-    return f"Toggle.ToggleState:\t{state}"
 
 
 def _ensure_parameters_tab(timeout: float = 90.0) -> None:
@@ -532,24 +515,78 @@ def Sensitivity_Analysis_Calculate(timeout: float = 60.0):
 
 
 def Sensitivity_Table(timeout: float = 90.0) -> pd.DataFrame:
-    """Return the Sensitivity results grid (button24) as a DataFrame."""
-    table_data = collect_table("button24", timeout=timeout)
-    df = _table_to_dataframe(table_data)
-
-    if df.columns.tolist() and df.columns[0] == "#":
-        df = df.drop(columns="#")
-
+    """Extract Sensitivity grid data and return as pandas DataFrame."""
+    # Get the app and refresh root to ensure we have current window
+    app = _get_app()
+    root = app.top_window().element_info.element
+    
+    # Find the sensitivity window and grid element
+    sensitivity_window = find_element_fast(root, "frmOrphSensitivity")
+    if not sensitivity_window:
+        raise RuntimeError("Sensitivity Analysis window not found")
+    
+    sensitivity_element = sensitivity_window.element_info.element
+    grid = find_element_fast(sensitivity_element, "grdSensitivityData")
+    if not grid:
+        raise RuntimeError("Sensitivity results grid 'grdSensitivityData' not found")
+    
+    # Access grid's children (rows)
+    rows = grid.children()
+    data = []
+    headers = []
+    
+    for i, row in enumerate(rows):
+        row_data = []
+        cells = row.children()  # Get cells in the row
+        for cell in cells:
+            # Try to get actual value instead of title
+            try:
+                # Try Value pattern first
+                if hasattr(cell, 'iface_value') and cell.iface_value:
+                    cell_text = cell.get_value()
+                else:
+                    # Fall back to legacy value
+                    cell_text = cell.legacy_properties().get('Value', cell.window_text())
+            except:
+                # Last resort - use window text
+                cell_text = cell.window_text()
+            row_data.append(cell_text)
+        
+        # Check if this row looks like a header (first row or contains header-like content)
+        is_header = (i == 0) or any(
+            'BHA Depth' in str(cell) or 
+            'Pipe Fluid Density' in str(cell) or 
+            'Force on End' in str(cell) or
+            '\r(' in str(cell) 
+            for cell in row_data
+        )
+        
+        if is_header:
+            headers = row_data  # This is a header row
+            # Don't add it to data
+        else:
+            # Only add non-header rows to data
+            if headers:  # Only add data if we've found headers
+                data.append(row_data)
+    
+    # If no headers detected, use first row as headers
+    if not headers and data:
+        headers = data[0]
+        data = data[1:]
+    
+    # Create DataFrame
+    df = pd.DataFrame(data, columns=headers if headers else None)
+    
+    # Drop first column if it's just row numbers (typically "#")
+    if df.columns.tolist() and (df.columns[0] == "#" or df.columns[0] == ""):
+        df = df.iloc[:, 1:]
+    
+    # Remove empty columns
     df = df.loc[:, df.apply(lambda col: col.astype(str).str.strip().ne("").any())]
-
-    dump_headers = _headers_from_dump("button25") or _headers_from_dump("button24")
-    if dump_headers and all(_is_generic_header(column) for column in df.columns):
-        cleaned = [header for header in dump_headers if header and header != "#"]
-        if cleaned:
-            rename_map = dict(zip(df.columns, cleaned[: len(df.columns)]))
-            df = df.rename(columns=rename_map)
-
-    df = df.loc[:, df.apply(lambda col: col.astype(str).str.strip().ne("").any())]
+    
+    # Convert numeric columns
     df = _coerce_numeric_columns(df)
+    
     return df
 
 
