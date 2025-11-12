@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from ctypes import windll, wintypes
 from pathlib import Path
+import time
 from typing import Any, Mapping, Sequence
 import warnings
 import comtypes.client
@@ -485,6 +486,13 @@ def Sensitivity_Table(timeout: float = 90.0) -> pd.DataFrame:
                 cell_text = cell.window_text()
             row_data.append(cell_text)
         
+        # Check if row is completely empty (all cells blank)
+        is_empty_row = all(str(cell).strip() == "" for cell in row_data)
+        
+        if is_empty_row:
+            # Skip completely empty rows
+            continue
+        
         # Check if this row looks like a header (first row or contains header-like content)
         is_header = (i == 0) or any(
             'BHA Depth' in str(cell) or 
@@ -520,6 +528,12 @@ def Sensitivity_Table(timeout: float = 90.0) -> pd.DataFrame:
     # Convert numeric columns
     df = _coerce_numeric_columns(df)
     
+    # Drop rows that are all NaN (these are separator rows between batches)
+    df = df.dropna(how='all')
+    
+    # Reset index after dropping rows
+    df = df.reset_index(drop=True)
+    
     return df
 
 
@@ -528,4 +542,27 @@ def Sensitivity_Parameter_ok(timeout: float = 60.0):
     root = _get_app_root()
     element = find_element_fast(root, "cmdOK")
     element.iface_invoke.Invoke()
+
+def Exit(timeout: float = 60.0):
+    """Close the Sensitivity Analysis window and click No on save dialog."""
+    root = _get_app_root()
+    exit_button = find_element_fast(root, "cmdExit")
+    if exit_button:
+        exit_button.click_input()
+
+    # Wait for the dialog to appear
+    time.sleep(1)
+    
+    # Force a fresh reconnection to get the new dialog window
+    connection = _AppConnection()
+    connection.app = Application(backend="uia").connect(auto_id="frmOrpheus")
+    connection.root = connection.app.top_window().element_info.element
+    
+    # Now search for btnNo in the new dialog
+    new_root = _get_app_root()
+    no_button = find_element_by_title(new_root, "No")
+    if no_button:
+        no_button.click_input()
+
+
 

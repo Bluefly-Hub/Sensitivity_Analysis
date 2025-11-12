@@ -9,6 +9,7 @@ import pandas as pd
 from Button_Repository import (
     Clear_Value_List,
     Edit_cmdOK,
+    Exit,
     Parameter_Matrix_BHA_Depth_Row0,
     Parameter_Matrix_FOE_POOH_Row0,
     Parameter_Matrix_FOE_RIH_Row0,
@@ -168,6 +169,11 @@ def run_automation(
 
     _execute_batches("RIH", results["RIH"])
     _execute_batches("POOH", results["POOH"])
+    
+    # Close the Sensitivity Analysis window
+    Exit()
+    #btnNo()
+    
     return results
 
 
