@@ -14,6 +14,7 @@ from typing import Any, Dict, List
 import pandas as pd
 
 from Automation import BatchResult, ProgressReporter, CerberusEngine
+from clear_comtypes_cache import clear_cache
 
 
 
@@ -459,6 +460,7 @@ class CerberusApp(tk.Tk):
         self.worker_thread.start()
 
     def _run(self) -> None:
+        clear_cache()
         self._start_worker()
 
     def _stop(self) -> None:

@@ -90,6 +90,11 @@ class _AppConnection:
             # Reconnect
             self.app = Application(backend="uia").connect(auto_id="frmOrpheus")
             self.root = self.app.top_window().element_info.element
+    
+    @classmethod
+    def reset(cls):
+        """Reset the singleton instance to force fresh connection on next use."""
+        cls._instance = None
 
 
 def _get_app_root():
@@ -602,6 +607,9 @@ def Exit(timeout: float = 60.0):
     no_button = find_element_by_title(new_root, "No")
     if no_button:
         no_button.click_input()
+    
+    # Reset singleton so next run creates fresh connection
+    _AppConnection.reset()
 
 
 
