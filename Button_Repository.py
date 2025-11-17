@@ -6,8 +6,22 @@ from pathlib import Path
 import time
 from typing import Any, Mapping, Sequence
 import warnings
-import comtypes.client
-from comtypes.gen.UIAutomationClient import IUIAutomation, TreeScope_Descendants
+
+# Clear comtypes cache if there's a version mismatch
+try:
+    import comtypes.client
+    from comtypes.gen.UIAutomationClient import IUIAutomation, TreeScope_Descendants
+except ImportError:
+    # Cache is stale - clear and regenerate
+    import comtypes.client
+    gen_dir = Path(comtypes.client.__file__).parent / "gen"
+    if gen_dir.exists():
+        for item in gen_dir.iterdir():
+            if item.name not in ("__pycache__", "__init__.py") and item.is_file():
+                item.unlink()
+    # Regenerate
+    comtypes.client.GetModule('UIAutomationCore.dll')
+    from comtypes.gen.UIAutomationClient import IUIAutomation, TreeScope_Descendants
 
 import pandas as pd
 from pywinauto import Application, timings
