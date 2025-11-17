@@ -388,7 +388,7 @@ def Parameter_Matrix_PFD_Row0(timeout: float = 60.0):
     table = find_element_fast(matrix_window.element_info.element, "grdVal")
     col_idx = _find_matrix_column_by_name(table, "Pipe Fluid Density")
     cell = UIAWrapper(UIAElementInfo(table.iface_grid.GetItem(0, col_idx)))
-    cell.set_focus()
+    #cell.set_focus()
     cell.click_input()
 
 
@@ -397,8 +397,8 @@ def Parameter_Matrix_FOE_POOH_Row0(timeout: float = 60.0):
     root = _get_app_root()
     matrix_window = find_element_fast(root, "frmSensitivityMatrix")
     table = find_element_fast(matrix_window.element_info.element, "grdVal")
-    col_idx = _find_matrix_column_by_name(table, "Force on End")
-    table.set_focus()
+    col_idx = _find_matrix_column_by_name(table, "Force on End - POOH")
+    #table.set_focus()
     cell = UIAWrapper(UIAElementInfo(table.iface_grid.GetItem(0, col_idx)))
     cell.click_input()
 
