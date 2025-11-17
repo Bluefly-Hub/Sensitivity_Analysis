@@ -345,6 +345,25 @@ def Set_Parameters_RIH(timeout: float = 90.0) -> None:
 # Parameter Matrix interaction
 # ---------------------------------------------------------------------------
 
+def _find_matrix_column_by_name(table, column_name: str) -> int:
+    """Find column index in Parameter Matrix by header name."""
+    # Get header row (row 0)
+    num_cols = table.iface_grid.CurrentColumnCount
+    
+    for col_idx in range(num_cols):
+        try:
+            header_cell = UIAWrapper(UIAElementInfo(table.iface_grid.GetItem(0, col_idx)))
+            header_text = header_cell.window_text().strip()
+            
+            # Check for exact match or partial match (case insensitive)
+            if column_name.lower() in header_text.lower():
+                return col_idx
+        except Exception:
+            continue
+    
+    raise RuntimeError(f"Column '{column_name}' not found in Parameter Matrix")
+
+
 def Parameter_Matrix_Wizard(timeout: float = 90.0):
     """Open the Parameter Matrix wizard (button10)."""
     root = _get_app_root()
@@ -353,38 +372,44 @@ def Parameter_Matrix_Wizard(timeout: float = 90.0):
 
 
 def Parameter_Matrix_BHA_Depth_Row0(timeout: float = 60.0):
-    """Select and activate BHA Depth cell in Parameter Matrix (Row 0, Column 1)."""
+    """Select and activate BHA Depth cell in Parameter Matrix."""
     root = _get_app_root()
     matrix_window = find_element_fast(root, "frmSensitivityMatrix")
     table = find_element_fast(matrix_window.element_info.element, "grdVal")
-    cell = UIAWrapper(UIAElementInfo(table.iface_grid.GetItem(0, 1)))
-    cell.click_input()  # Double-click to open value editor
+    col_idx = _find_matrix_column_by_name(table, "BHA Depth")
+    cell = UIAWrapper(UIAElementInfo(table.iface_grid.GetItem(0, col_idx)))
+    cell.click_input()
 
 
 def Parameter_Matrix_PFD_Row0(timeout: float = 60.0):
-    """Select and activate Pipe Fluid Density cell in Parameter Matrix (Row 0, Column 18)."""
+    """Select and activate Pipe Fluid Density cell in Parameter Matrix."""
     root = _get_app_root()
     matrix_window = find_element_fast(root, "frmSensitivityMatrix")
     table = find_element_fast(matrix_window.element_info.element, "grdVal")
-    cell = UIAWrapper(UIAElementInfo(table.iface_grid.GetItem(0, 18)))
+    col_idx = _find_matrix_column_by_name(table, "Pipe Fluid Density")
+    cell = UIAWrapper(UIAElementInfo(table.iface_grid.GetItem(0, col_idx)))
+    cell.set_focus()
     cell.click_input()
 
 
 def Parameter_Matrix_FOE_POOH_Row0(timeout: float = 60.0):
-    """Select and activate FOE POOH cell in Parameter Matrix (Row 0, Column 22)."""
+    """Select and activate FOE POOH cell in Parameter Matrix."""
     root = _get_app_root()
     matrix_window = find_element_fast(root, "frmSensitivityMatrix")
     table = find_element_fast(matrix_window.element_info.element, "grdVal")
-    cell = UIAWrapper(UIAElementInfo(table.iface_grid.GetItem(0, 22)))
+    col_idx = _find_matrix_column_by_name(table, "Force on End")
+    table.set_focus()
+    cell = UIAWrapper(UIAElementInfo(table.iface_grid.GetItem(0, col_idx)))
     cell.click_input()
 
 
 def Parameter_Matrix_FOE_RIH_Row0(timeout: float = 60.0):
-    """Select and activate FOE RIH cell in Parameter Matrix (Row 0, Column 21)."""
+    """Select and activate FOE RIH cell in Parameter Matrix."""
     root = _get_app_root()
     matrix_window = find_element_fast(root, "frmSensitivityMatrix")
     table = find_element_fast(matrix_window.element_info.element, "grdVal")
-    cell = UIAWrapper(UIAElementInfo(table.iface_grid.GetItem(0, 21)))
+    col_idx = _find_matrix_column_by_name(table, "Force on End")
+    cell = UIAWrapper(UIAElementInfo(table.iface_grid.GetItem(0, col_idx)))
     cell.click_input()
 
 
